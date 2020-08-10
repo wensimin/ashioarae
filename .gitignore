@@ -32,3 +32,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+## passwd ###
+/src/main/resources/application.yml
