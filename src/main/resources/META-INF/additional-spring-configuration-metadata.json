@@ -1,0 +1,18 @@
+{
+  "properties": [
+    {
+      "name": "spring.datasource.jpa.properties.hibernate.show_sql",
+      "type": "java.lang.String",
+      "description": "Description for spring.datasource.jpa.properties.hibernate.show_sql."
+    },
+    {
+      "name": "spring.datasource.jpa.properties.hibernate.hbm2ddl.auto",
+      "type": "java.lang.String",
+      "description": "Description for spring.datasource.jpa.properties.hibernate.hbm2ddl.auto."
+    },
+    {
+      "name": "spring.datasource.redis.host",
+      "type": "java.lang.String",
+      "description": "Description for spring.datasource.redis.host."
+    }
+  ] }
