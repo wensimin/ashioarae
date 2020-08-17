@@ -35,3 +35,5 @@ out/
 
 ## passwd ###
 /src/main/resources/application.yml
+## update ##
+file/

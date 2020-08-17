@@ -3,11 +3,13 @@ package com.github.wensimin.ashioarae.controller;
 import com.github.wensimin.ashioarae.entity.SysUser;
 import com.github.wensimin.ashioarae.service.SysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.security.Principal;
 
 @RestController
+@RequestMapping("user")
 public class UserController {
     private final SysUserService userService;
 
@@ -17,7 +19,12 @@ public class UserController {
     }
 
     @PostMapping("register")
-    public SysUser register(@RequestBody SysUser user) {
+    public SysUser register(@Valid @RequestBody SysUser user) {
         return userService.register(user);
+    }
+
+    @GetMapping
+    public String username(Principal principal) {
+        return principal.getName();
     }
 }
