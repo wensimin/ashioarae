@@ -1,7 +1,5 @@
 package com.github.wensimin.ashioarae.controller.exception;
 
-import com.github.wensimin.ashioarae.service.exception.AshiException;
-import com.github.wensimin.ashioarae.service.exception.CookieExpireException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

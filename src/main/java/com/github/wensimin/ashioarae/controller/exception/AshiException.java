@@ -1,4 +1,4 @@
-package com.github.wensimin.ashioarae.service.exception;
+package com.github.wensimin.ashioarae.controller.exception;
 
 /**
  * 同步异常

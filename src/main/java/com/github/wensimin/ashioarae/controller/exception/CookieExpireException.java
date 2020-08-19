@@ -1,4 +1,4 @@
-package com.github.wensimin.ashioarae.service.exception;
+package com.github.wensimin.ashioarae.controller.exception;
 
 /**
  * cookie过期异常
