@@ -17,6 +17,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Optional;
 
+/**
+ * b站ashi service
+ */
 @Service
 public class BilibiliAshiService implements AshioaraeInterface {
 
