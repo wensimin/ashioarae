@@ -1,5 +1,6 @@
 package com.github.wensimin.ashioarae.controller;
 
+import com.github.wensimin.ashioarae.entity.AshiData;
 import com.github.wensimin.ashioarae.entity.AshiTarget;
 import com.github.wensimin.ashioarae.service.AshiService;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
@@ -28,6 +29,10 @@ public class AshiController {
     public void ashiHead(@PathVariable AshiType type,Principal principal){
         ashiService.ashiHead(type,principal.getName());
 
+    }
+    @GetMapping("{type}")
+    public AshiData ashiInfo(@PathVariable AshiType type,Principal principal){
+        return ashiService.ashiInfo(type,principal.getName());
     }
 
 }

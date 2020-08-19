@@ -1,5 +1,9 @@
 package com.github.wensimin.ashioarae.service.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,4 +22,14 @@ public class HttpUtils {
         return map;
     }
 
+    public static Map<String, String> json2Map(String json) {
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            return mapper.readValue(json, new TypeReference<>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.github.wensimin.ashioarae.service;
 
 import com.github.wensimin.ashioarae.dao.AshiTargetDao;
 import com.github.wensimin.ashioarae.dao.SysUserDao;
+import com.github.wensimin.ashioarae.entity.AshiData;
 import com.github.wensimin.ashioarae.entity.AshiTarget;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
 import com.github.wensimin.ashioarae.service.exception.AshiException;
@@ -48,11 +49,28 @@ public class AshiService {
         var user = sysUserDao.findByUsername(username);
         var ashi = ashiTargetDao.findBySysUserAndType(user, type);
         File file = new File(fileBasePath + "/" + ashi.getHeadImage());
+        AshioaraeInterface service = getService(type);
+        service.updateHeadImage(ashi.getCookie(), file);
+    }
+
+    public AshiData ashiInfo(AshiType type, String username) {
+        var user = sysUserDao.findByUsername(username);
+        var ashi = ashiTargetDao.findBySysUserAndType(user, type);
+        AshioaraeInterface service = getService(type);
+        return service.getInfo(ashi.getCookie());
+    }
+
+    /**
+     * 获取类型对应服务
+     *
+     * @param type 类型
+     * @return 服务
+     */
+    private AshioaraeInterface getService(AshiType type) {
         AshioaraeInterface first = ashioaraeInterfaceList.stream().filter(s -> s.getType() == type).findFirst().orElse(null);
         if (first == null) {
             throw new AshiException("未找到服务");
         }
-        first.updateHeadImage(ashi.getCookie(), file);
+        return first;
     }
-
 }

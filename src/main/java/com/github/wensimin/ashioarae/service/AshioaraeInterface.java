@@ -1,5 +1,6 @@
 package com.github.wensimin.ashioarae.service;
 
+import com.github.wensimin.ashioarae.entity.AshiData;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
 
 import java.io.File;
@@ -31,7 +32,7 @@ public interface AshioaraeInterface {
      * @param cookie 检查cookie的有效性
      * @return 是否有效
      */
-    boolean checkCookieExpire(String cookie);
+    AshiData getInfo(String cookie);
 
     /**
      * 获取目标站类型
