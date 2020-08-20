@@ -34,5 +34,8 @@ public class AshiController {
     public AshiData ashiInfo(@PathVariable AshiType type,Principal principal){
         return ashiService.ashiInfo(type,principal.getName());
     }
-
+    @GetMapping
+    public AshiData ashiInfo(Principal principal){
+        return ashiService.ashiInfo(principal.getName());
+    }
 }

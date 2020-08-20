@@ -15,4 +15,5 @@ public class WebAppConfigurer implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins("*");
     }
+    
 }

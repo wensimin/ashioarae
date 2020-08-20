@@ -28,6 +28,13 @@ public class AshiService {
         this.ashioaraeInterfaceList = ashioaraeInterfaceList;
     }
 
+    /**
+     * 保存ashi target
+     *
+     * @param ashiTarget ashiTarget
+     * @param username   当前用户
+     * @return ashi对象
+     */
     public AshiTarget save(AshiTarget ashiTarget, String username) {
         var user = sysUserDao.findByUsername(username);
         var oldAshi = ashiTargetDao.findBySysUserAndType(user, ashiTarget.getType());
@@ -52,11 +59,33 @@ public class AshiService {
         service.updateHeadImage(ashi.getCookie(), file);
     }
 
+    /**
+     * 获取对应类型的ashiData
+     *
+     * @param type     类型
+     * @param username 当前用户
+     * @return ashiData
+     */
     public AshiData ashiInfo(AshiType type, String username) {
         var user = sysUserDao.findByUsername(username);
         var ashi = ashiTargetDao.findBySysUserAndType(user, type);
         AshioaraeInterface service = getService(type);
         return service.getInfo(ashi.getCookie());
+    }
+
+    /**
+     * 获取ashi类型的数据
+     *
+     * @param username 当前用户
+     * @return ashiData
+     */
+    public AshiData ashiInfo(String username) {
+        var user = sysUserDao.findByUsername(username);
+        var ashi = ashiTargetDao.findBySysUserAndType(user, AshiType.ashioarae);
+        if (ashi == null) {
+            return null;
+        }
+        return new AshiData(ashi.getNickname(), ashi.getHeadImage());
     }
 
     /**
@@ -72,4 +101,6 @@ public class AshiService {
         }
         return first;
     }
+
+
 }
