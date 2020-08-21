@@ -27,7 +27,12 @@ public class AshiController {
 
     @PutMapping("head/{type}")
     public void ashiHead(@PathVariable AshiType type,Principal principal){
-        ashiService.ashiHead(type,principal.getName());
+        ashiService.updateAshiHead(type,principal.getName());
+
+    }
+    @PutMapping("nick/{type}")
+    public void ashiNick(@PathVariable AshiType type,Principal principal){
+        ashiService.updateAshiNick(type,principal.getName());
 
     }
     @GetMapping("{type}")

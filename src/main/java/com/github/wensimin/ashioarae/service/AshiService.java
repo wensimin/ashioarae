@@ -51,12 +51,27 @@ public class AshiService {
      * @param type     同步类型
      * @param username 当前用户
      */
-    public void ashiHead(AshiType type, String username) {
+    public void updateAshiHead(AshiType type, String username) {
         var user = sysUserDao.findByUsername(username);
         var ashi = ashiTargetDao.findBySysUserAndType(user, type);
-        File file = new File(fileBasePath + "/" + ashi.getHeadImage());
+        var preAshiTarget = ashiTargetDao.findBySysUserAndType(user, AshiType.ashioarae);
+        File file = new File(fileBasePath + "/" + preAshiTarget.getHeadImage());
         AshioaraeInterface service = getService(type);
         service.updateHeadImage(ashi.getCookie(), file);
+    }
+
+    /**
+     * 进行同步昵称
+     *
+     * @param type     同步类型
+     * @param username 当前用户
+     */
+    public void updateAshiNick(AshiType type, String username) {
+        var user = sysUserDao.findByUsername(username);
+        var ashi = ashiTargetDao.findBySysUserAndType(user, type);
+        var preAshiTarget = ashiTargetDao.findBySysUserAndType(user, AshiType.ashioarae);
+        AshioaraeInterface service = getService(type);
+        service.updateNickname(ashi.getCookie(), preAshiTarget.getNickname());
     }
 
     /**

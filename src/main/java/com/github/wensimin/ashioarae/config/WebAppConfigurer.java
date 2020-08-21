@@ -13,7 +13,8 @@ public class WebAppConfigurer implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
+                .allowedMethods("*")
                 .allowedOrigins("*");
     }
-    
+
 }
