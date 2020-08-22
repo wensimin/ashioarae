@@ -103,7 +103,7 @@ public class BilibiliAshiService implements AshioaraeInterface {
         }
         if (res.getCode() != BilibiliResponse.SUCCESS_CODE) {
             if (res.getCode() == BilibiliResponse.EXPIRE_CODE) {
-                throw new CookieExpireException();
+                throw new CookieExpireException(AshiType.bilibili + " cookie过期");
             }
             throw new AshiException(res.getMessage());
         }
