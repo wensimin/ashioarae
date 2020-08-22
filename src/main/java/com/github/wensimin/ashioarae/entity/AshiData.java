@@ -1,5 +1,8 @@
 package com.github.wensimin.ashioarae.entity;
 
+/**
+ * ashi数据
+ */
 public class AshiData {
     private String nickname;
     private String headImage;

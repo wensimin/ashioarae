@@ -18,8 +18,7 @@ public class AshiTarget {
     @NotNull
     @Column(nullable = false)
     private AshiType type;
-    private String headImage;
-    private String nickname;
+
     @NotEmpty
     @Column(nullable = false, length = 81920)
     private String cookie;
@@ -52,21 +51,6 @@ public class AshiTarget {
         this.cookie = cookie;
     }
 
-    public String getHeadImage() {
-        return headImage;
-    }
-
-    public void setHeadImage(String headImage) {
-        this.headImage = headImage;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
 
     public SysUser getSysUser() {
         return sysUser;

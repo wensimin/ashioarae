@@ -1,9 +1,11 @@
 package com.github.wensimin.ashioarae.service;
 
 import com.github.wensimin.ashioarae.dao.AshiTargetDao;
+import com.github.wensimin.ashioarae.dao.PreAshiDao;
 import com.github.wensimin.ashioarae.dao.SysUserDao;
 import com.github.wensimin.ashioarae.entity.AshiData;
 import com.github.wensimin.ashioarae.entity.AshiTarget;
+import com.github.wensimin.ashioarae.entity.PreAshi;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +21,14 @@ public class AshiService {
     private String fileBasePath;
     private final AshiTargetDao ashiTargetDao;
     private final SysUserDao sysUserDao;
+    private final PreAshiDao preAshiDao;
     private final List<AshioaraeInterface> ashioaraeInterfaceList;
 
     @Autowired
-    public AshiService(AshiTargetDao ashiTargetDao, SysUserDao sysUserDao, List<AshioaraeInterface> ashioaraeInterfaceList) {
+    public AshiService(AshiTargetDao ashiTargetDao, SysUserDao sysUserDao, PreAshiDao preAshiDao, List<AshioaraeInterface> ashioaraeInterfaceList) {
         this.ashiTargetDao = ashiTargetDao;
         this.sysUserDao = sysUserDao;
+        this.preAshiDao = preAshiDao;
         this.ashioaraeInterfaceList = ashioaraeInterfaceList;
     }
 
@@ -54,8 +58,8 @@ public class AshiService {
     public void updateAshiHead(AshiType type, String username) {
         var user = sysUserDao.findByUsername(username);
         var ashi = ashiTargetDao.findBySysUserAndType(user, type);
-        var preAshiTarget = ashiTargetDao.findBySysUserAndType(user, AshiType.ashioarae);
-        File file = new File(fileBasePath + "/" + preAshiTarget.getHeadImage());
+        var preAshi =preAshiDao.findBySysUser(user);
+        File file = new File(fileBasePath + "/" + preAshi.getHeadImage());
         AshioaraeInterface service = getService(type);
         service.updateHeadImage(ashi.getCookie(), file);
     }
@@ -69,9 +73,9 @@ public class AshiService {
     public void updateAshiNick(AshiType type, String username) {
         var user = sysUserDao.findByUsername(username);
         var ashi = ashiTargetDao.findBySysUserAndType(user, type);
-        var preAshiTarget = ashiTargetDao.findBySysUserAndType(user, AshiType.ashioarae);
+        var preAshi =preAshiDao.findBySysUser(user);
         AshioaraeInterface service = getService(type);
-        service.updateNickname(ashi.getCookie(), preAshiTarget.getNickname());
+        service.updateNickname(ashi.getCookie(), preAshi.getNickname());
     }
 
     /**
@@ -96,7 +100,7 @@ public class AshiService {
      */
     public AshiData ashiInfo(String username) {
         var user = sysUserDao.findByUsername(username);
-        var ashi = ashiTargetDao.findBySysUserAndType(user, AshiType.ashioarae);
+        var ashi = preAshiDao.findBySysUser(user);
         if (ashi == null) {
             return null;
         }
@@ -118,4 +122,19 @@ public class AshiService {
     }
 
 
+    /**
+     * 保存preAshi信息
+     * @param preAshi 预更新ashi
+     * @param name 当前用户
+     * @return preAshi对象
+     */
+    public PreAshi savePreAshi(PreAshi preAshi, String name) {
+        var user = sysUserDao.findByUsername(name);
+        var oldAshi = preAshiDao.findBySysUser(user);
+        if (oldAshi != null && !oldAshi.getId().equals(preAshi.getId())) {
+            preAshi.setId(oldAshi.getId());
+        }
+        preAshi.setSysUser(user);
+        return preAshiDao.save(preAshi);
+    }
 }

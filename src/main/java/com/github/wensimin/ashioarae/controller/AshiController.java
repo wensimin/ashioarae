@@ -2,6 +2,7 @@ package com.github.wensimin.ashioarae.controller;
 
 import com.github.wensimin.ashioarae.entity.AshiData;
 import com.github.wensimin.ashioarae.entity.AshiTarget;
+import com.github.wensimin.ashioarae.entity.PreAshi;
 import com.github.wensimin.ashioarae.service.AshiService;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,14 @@ public class AshiController {
     public AshiTarget addAshi(@Valid @RequestBody AshiTarget ashiTarget, Principal principal) {
         return ashiService.save(ashiTarget,principal.getName());
     }
+    @PostMapping("pre")
+    public PreAshi addPreAshi(@Valid @RequestBody PreAshi preAshi, Principal principal) {
+        return ashiService.savePreAshi(preAshi,principal.getName());
+    }
+    @GetMapping
+    public AshiData ashiInfo(Principal principal){
+        return ashiService.ashiInfo(principal.getName());
+    }
 
     @PutMapping("head/{type}")
     public void ashiHead(@PathVariable AshiType type,Principal principal){
@@ -39,8 +48,6 @@ public class AshiController {
     public AshiData ashiInfo(@PathVariable AshiType type,Principal principal){
         return ashiService.ashiInfo(type,principal.getName());
     }
-    @GetMapping
-    public AshiData ashiInfo(Principal principal){
-        return ashiService.ashiInfo(principal.getName());
-    }
+
+
 }

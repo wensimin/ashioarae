@@ -24,11 +24,10 @@ public class FileController {
 
     @PostMapping
     public String upload(@RequestParam("file") MultipartFile file,
-                         @RequestParam("type") AshiType type,
                          Principal principal)
             throws IOException {
         String fileName = Optional.ofNullable(file.getOriginalFilename()).orElse(".jpg");
-        String name = type.name() + fileName.substring(fileName.lastIndexOf("."));
+        String name = "preHead" + fileName.substring(fileName.lastIndexOf("."));
         String filePath = fileBasePath + "/" + principal.getName() + "/" + name;
         File basePath = new File(fileBasePath + "/" + principal.getName());
         if (!basePath.exists()) {
