@@ -1,16 +1,16 @@
 package com.github.wensimin.ashioarae.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.wensimin.ashioarae.entity.AshiData;
-import com.github.wensimin.ashioarae.service.enums.AshiType;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
+import com.github.wensimin.ashioarae.entity.AshiData;
+import com.github.wensimin.ashioarae.service.enums.AshiType;
 import com.github.wensimin.ashioarae.service.utils.HttpUtils;
-import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,12 +44,7 @@ public class BilibiliAshiService implements AshioaraeInterface {
         }
         body.add("dopost", "save");
         body.add("Displayrank", "1000");
-        HttpEntity<MultiValueMap<String, Object>> requestEntity
-                = new HttpEntity<>(body, headers);
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<BilibiliResponse> response = restTemplate
-                .postForEntity(url, requestEntity, BilibiliResponse.class);
-        this.checkRes(response);
+        this.checkRes(HttpUtils.post(url,headers,body,cookie,BilibiliResponse.class));
     }
 
 
@@ -60,22 +55,16 @@ public class BilibiliAshiService implements AshioaraeInterface {
 
     @Override
     public AshiData getInfo(String cookie) {
-        HttpHeaders headers = new HttpHeaders();
-        RestTemplate restTemplate = new RestTemplate();
-        headers.add("cookie", cookie);
-        var request = new HttpEntity<>(headers);
-        ResponseEntity<BilibiliResponse> infoResponse = restTemplate.exchange(INFO_API, HttpMethod.GET, request, BilibiliResponse.class);
-        ResponseEntity<BilibiliResponse> headResponse = restTemplate.exchange(HEAD_API, HttpMethod.GET, request, BilibiliResponse.class);
+        BilibiliResponse infoResponse = HttpUtils.get(INFO_API,cookie,BilibiliResponse.class);
+        BilibiliResponse headResponse = HttpUtils.get(HEAD_API,cookie,BilibiliResponse.class);
         checkRes(infoResponse);
         checkRes(headResponse);
         String name = Optional.of(infoResponse)
-                .map(HttpEntity::getBody)
                 .map(BilibiliResponse::getData)
                 .map(d -> d.get("uname"))
                 .map(JsonNode::asText)
                 .orElse("");
         String headImage = Optional.of(headResponse)
-                .map(HttpEntity::getBody)
                 .map(BilibiliResponse::getData)
                 .map(d -> d.get("face_url"))
                 .map(JsonNode::asText)
@@ -91,15 +80,11 @@ public class BilibiliAshiService implements AshioaraeInterface {
     /**
      * 检查结果
      *
-     * @param response response
+     * @param res response
      */
-    private void checkRes(ResponseEntity<BilibiliResponse> response) {
-        if (response.getStatusCode() != HttpStatus.OK) {
-            throw new AshiException("error:" + response.getStatusCode());
-        }
-        var res = response.getBody();
-        if (res == null) {
-            throw new AshiException("res null");
+    private void checkRes(BilibiliResponse res) {
+        if(res==null){
+            throw new AshiException("bilibili res null");
         }
         if (res.getCode() != BilibiliResponse.SUCCESS_CODE) {
             if (res.getCode() == BilibiliResponse.EXPIRE_CODE) {
