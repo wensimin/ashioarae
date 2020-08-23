@@ -13,6 +13,7 @@ public class ExceptionController {
 
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ExceptionEntity> exception(Exception exception) {
+        exception.printStackTrace();
         return new ResponseEntity<>(new ExceptionEntity(exception.getMessage(), ExceptionType.error),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }

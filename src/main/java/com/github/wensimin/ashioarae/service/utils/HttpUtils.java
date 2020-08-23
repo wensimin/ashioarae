@@ -19,9 +19,13 @@ import java.util.Map;
  */
 public class HttpUtils {
     private static final SimpleClientHttpRequestFactory requestFactory;
+    // fixme hard code
+    private static final String host = "192.168.0.201";
+    private static final int port = 1080;
+
 
     static {
-        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 1080));
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
         requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setProxy(proxy);
     }

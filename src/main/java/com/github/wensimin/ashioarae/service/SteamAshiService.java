@@ -1,12 +1,18 @@
 package com.github.wensimin.ashioarae.service;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
 import com.github.wensimin.ashioarae.entity.AshiData;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
 import com.github.wensimin.ashioarae.service.utils.HttpUtils;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.HtmlUtils;
 
 import java.io.File;
@@ -27,8 +33,24 @@ public class SteamAshiService implements AshioaraeInterface {
 
     @Override
     public void updateHeadImage(String cookie, File file) {
-        throw new AshiException("steam 同步头像暂不支持");
+        var cookieMap = HttpUtils.cookie2map(cookie);
+        var sessionId = cookieMap.get("sessionid");
+        var sId = cookieMap.get("steamRememberLogin");
+        sId = sId.substring(0, sId.indexOf("%7C%7C"));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        MultiValueMap<String, Object> body
+                = new LinkedMultiValueMap<>();
+        body.add("avatar", new FileSystemResource(file));
+        body.add("type", "player_avatar_image");
+        body.add("sId", sId);
+        body.add("sessionid", sessionId);
+        body.add("doSub", 1);
+        body.add("json", 1);
+        UpdateResponse res = HttpUtils.post(HEAD_URL, headers, body, cookie, UpdateResponse.class, true);
+        this.checkRes(res);
     }
+
 
     @Override
     public void updateNickname(String cookie, String nickname) {
@@ -59,6 +81,13 @@ public class SteamAshiService implements AshioaraeInterface {
         return AshiType.steam;
     }
 
+    private void checkRes(UpdateResponse res) {
+        if (!res.getSuccess()) {
+            throw new AshiException("steam 更新头像失败");
+        }
+    }
+
+
     private static class SteamInfo {
         @JsonAlias("avatar_url")
         private String headImage;
@@ -79,6 +108,36 @@ public class SteamAshiService implements AshioaraeInterface {
 
         public void setNickname(String nickname) {
             this.nickname = nickname;
+        }
+    }
+
+    private static class UpdateResponse {
+        private Boolean success;
+        private JsonNode Images;
+        private String hash;
+
+        public Boolean getSuccess() {
+            return success;
+        }
+
+        public void setSuccess(Boolean success) {
+            this.success = success;
+        }
+
+        public JsonNode getImages() {
+            return Images;
+        }
+
+        public void setImages(JsonNode images) {
+            Images = images;
+        }
+
+        public String getHash() {
+            return hash;
+        }
+
+        public void setHash(String hash) {
+            this.hash = hash;
         }
     }
 }

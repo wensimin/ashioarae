@@ -34,7 +34,6 @@ public class BilibiliAshiService implements AshioaraeInterface {
         var url = UPDATE_HEAD_API + "?csrf=" + csrf;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.add("cookie", cookie);
         MultiValueMap<String, Object> body
                 = new LinkedMultiValueMap<>();
         try {
