@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import org.springframework.http.*;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,18 +19,40 @@ import java.util.Map;
  * http工具类
  */
 public class HttpUtils {
-    private static final SimpleClientHttpRequestFactory requestFactory;
+    private static final SimpleClientHttpRequestFactory proxyFactory;
     // fixme hard code
     private static final String host = "192.168.0.201";
     private static final int port = 1080;
+    private static final SimpleClientHttpRequestFactory requestFactory;
 
 
     static {
         Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
+        proxyFactory = new SimpleClientHttpRequestFactory();
+        proxyFactory.setProxy(proxy);
+        proxyFactory.setConnectTimeout(5000);
+        proxyFactory.setReadTimeout(5000);
         requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setProxy(proxy);
+        requestFactory.setConnectTimeout(3000);
+        requestFactory.setReadTimeout(3000);
     }
 
+
+    /**
+     * 创建restTemplate
+     *
+     * @param proxy 是否使用代理
+     * @return restTemplate
+     */
+    private static RestTemplate buildRestTemplate(boolean proxy) {
+        RestTemplate restTemplate;
+        if (proxy) {
+            restTemplate = new RestTemplate(proxyFactory);
+        } else {
+            restTemplate = new RestTemplate(requestFactory);
+        }
+        return restTemplate;
+    }
 
     /**
      * 将string cookie转化为map
@@ -47,23 +70,19 @@ public class HttpUtils {
         return map;
     }
 
+
     /**
      * 带cookie发起get
      *
      * @param <T>    返回值类型
      * @param url    目标url
      * @param cookie cookie
+     *               * @param headers header
      * @param type   返回值类型
      * @return entity
      */
-    public static <T> T get(String url, String cookie, Class<T> type, boolean proxy) {
-        HttpHeaders headers = new HttpHeaders();
-        RestTemplate restTemplate;
-        if (proxy) {
-            restTemplate = new RestTemplate(requestFactory);
-        } else {
-            restTemplate = new RestTemplate();
-        }
+    public static <T> T get(String url, HttpHeaders headers, String cookie, Class<T> type, boolean proxy) {
+        RestTemplate restTemplate = buildRestTemplate(proxy);
         headers.add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36");
         headers.add("cookie", cookie);
         var request = new HttpEntity<>(headers);
@@ -72,6 +91,10 @@ public class HttpUtils {
             throw new AshiException("error:" + response.getStatusCode());
         }
         return response.getBody();
+    }
+
+    public static <T> T get(String url, String cookie, Class<T> type, boolean proxy) {
+        return get(url, new HttpHeaders(), cookie, type, proxy);
     }
 
     public static <T> T get(String url, String cookie, Class<T> type) {
@@ -91,12 +114,7 @@ public class HttpUtils {
      * @return body
      */
     public static <T> T post(String url, HttpHeaders headers, MultiValueMap<String, Object> body, String cookie, Class<T> type, boolean proxy) {
-        RestTemplate restTemplate;
-        if (proxy) {
-            restTemplate = new RestTemplate(requestFactory);
-        } else {
-            restTemplate = new RestTemplate();
-        }
+        RestTemplate restTemplate = buildRestTemplate(proxy);
         headers.add("cookie", cookie);
         headers.add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36");
         HttpEntity<MultiValueMap<String, Object>> requestEntity
@@ -118,6 +136,14 @@ public class HttpUtils {
 
     public static <T> T post(String url, HttpHeaders headers, MultiValueMap<String, Object> body, String cookie, Class<T> type) {
         return post(url, headers, body, cookie, type, false);
+    }
+
+    public static <T> T post(String url, HttpHeaders headers, String cookie, Class<T> type, boolean proxy) {
+        return post(url, headers, new LinkedMultiValueMap<>(), cookie, type, proxy);
+    }
+
+    public static <T> T post(String url, HttpHeaders headers, String cookie, Class<T> type) {
+        return post(url, headers, cookie, type, false);
     }
 
 
