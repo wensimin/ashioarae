@@ -4,7 +4,7 @@ package com.github.wensimin.ashioarae.controller.exception;
  * 同步异常
  */
 public class AshiException extends RuntimeException {
-    private ExceptionType type;
+    private final ExceptionType type;
 
     public AshiException(String message) {
         this(message, ExceptionType.error);
