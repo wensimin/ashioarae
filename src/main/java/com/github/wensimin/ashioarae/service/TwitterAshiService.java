@@ -103,11 +103,7 @@ public class TwitterAshiService implements AshioaraeInterface {
     }
 
     private String getAttr(String html, String attr) {
-        return Optional.of(Pattern.compile(String.format(ATTR_REGEX, attr))).
-                map(p -> p.matcher(html))
-                .filter(Matcher::find)
-                .map(Matcher::group)
-                .orElse(null);
+        return HttpUtils.RexHtml(html, String.format(ATTR_REGEX, attr));
     }
 
     @Override

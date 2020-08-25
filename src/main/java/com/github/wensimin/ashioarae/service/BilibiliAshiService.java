@@ -82,7 +82,7 @@ public class BilibiliAshiService implements AshioaraeInterface {
      * @param res response
      */
     private void checkRes(BilibiliResponse res) {
-        if(res==null){
+        if (res == null) {
             throw new AshiException("bilibili res null");
         }
         if (res.getCode() != BilibiliResponse.SUCCESS_CODE) {

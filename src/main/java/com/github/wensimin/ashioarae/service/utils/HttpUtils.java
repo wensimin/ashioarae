@@ -14,6 +14,9 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * http工具类
@@ -161,6 +164,21 @@ public class HttpUtils {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e.getMessage());
         }
+    }
+
+    /**
+     * 通过正则获取html中的值
+     *
+     * @param html  html
+     * @param regex regex
+     * @return 捕获的组
+     */
+    public static String RexHtml(String html, String regex) {
+        return Optional.of(Pattern.compile(regex)).
+                map(p -> p.matcher(html))
+                .filter(Matcher::find)
+                .map(Matcher::group)
+                .orElse(null);
     }
 
 }
