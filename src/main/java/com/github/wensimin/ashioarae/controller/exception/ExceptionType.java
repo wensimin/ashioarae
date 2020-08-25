@@ -5,5 +5,6 @@ package com.github.wensimin.ashioarae.controller.exception;
  */
 public enum ExceptionType {
     error,
-    cookie
+    cookie,
+    timeout
 }
