@@ -5,17 +5,22 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
+import com.github.wensimin.ashioarae.controller.exception.ExceptionController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -26,6 +31,8 @@ import java.util.regex.Pattern;
  * http工具类
  */
 public class HttpUtils {
+    private static final Logger logger = LoggerFactory.getLogger(HttpUtils.class);
+
     private static final SimpleClientHttpRequestFactory proxyFactory;
     // fixme hard code
     private static final String host = "192.168.0.201";
@@ -192,12 +199,17 @@ public class HttpUtils {
 
         @Override
         public boolean hasError(ClientHttpResponse response) throws IOException {
-            return response.getStatusCode() == HttpStatus.FORBIDDEN || response.getStatusCode() == HttpStatus.UNAUTHORIZED;
+            return response.getStatusCode().series() != HttpStatus.Series.SUCCESSFUL;
         }
 
         @Override
-        public void handleError(ClientHttpResponse response) {
-            throw new CookieExpireException("cookie expire");
+        public void handleError(ClientHttpResponse response) throws IOException {
+            if (response.getStatusCode() == HttpStatus.FORBIDDEN || response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                throw new CookieExpireException("cookie expire");
+            } else {
+                logger.error(StreamUtils.copyToString(response.getBody(), Charset.defaultCharset()));
+                throw new AshiException("error: " + response.getStatusCode());
+            }
         }
     }
 
