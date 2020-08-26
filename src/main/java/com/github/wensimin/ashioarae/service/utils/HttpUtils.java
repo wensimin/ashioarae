@@ -4,12 +4,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
+import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
 import org.springframework.http.*;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.HashMap;
@@ -27,9 +31,10 @@ public class HttpUtils {
     private static final String host = "192.168.0.201";
     private static final int port = 1080;
     private static final SimpleClientHttpRequestFactory requestFactory;
-
+    private static final CookieErrorHandler errorhandler;
 
     static {
+        errorhandler = new CookieErrorHandler();
         Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
         proxyFactory = new SimpleClientHttpRequestFactory();
         proxyFactory.setProxy(proxy);
@@ -54,6 +59,7 @@ public class HttpUtils {
         } else {
             restTemplate = new RestTemplate(requestFactory);
         }
+        restTemplate.setErrorHandler(errorhandler);
         return restTemplate;
     }
 
@@ -179,6 +185,20 @@ public class HttpUtils {
                 .filter(Matcher::find)
                 .map(Matcher::group)
                 .orElse(null);
+    }
+
+
+    private static class CookieErrorHandler implements ResponseErrorHandler {
+
+        @Override
+        public boolean hasError(ClientHttpResponse response) throws IOException {
+            return response.getStatusCode() == HttpStatus.FORBIDDEN || response.getStatusCode() == HttpStatus.UNAUTHORIZED;
+        }
+
+        @Override
+        public void handleError(ClientHttpResponse response) {
+            throw new CookieExpireException("cookie expire");
+        }
     }
 
 }
