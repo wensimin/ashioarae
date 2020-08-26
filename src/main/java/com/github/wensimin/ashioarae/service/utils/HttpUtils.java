@@ -14,6 +14,7 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -78,6 +79,9 @@ public class HttpUtils {
      */
     public static Map<String, String> cookie2map(String cookies) {
         Map<String, String> map = new HashMap<>();
+        if (StringUtils.isEmpty(cookies)) {
+            return map;
+        }
         String[] cookiesArray = cookies.split(";");
         for (String c : cookiesArray) {
             String[] cookie = c.split("=");
@@ -199,7 +203,7 @@ public class HttpUtils {
 
         @Override
         public boolean hasError(ClientHttpResponse response) throws IOException {
-            return response.getStatusCode().series() != HttpStatus.Series.SUCCESSFUL;
+            return response.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR || response.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR;
         }
 
         @Override

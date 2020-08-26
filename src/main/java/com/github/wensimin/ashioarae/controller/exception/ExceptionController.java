@@ -1,5 +1,6 @@
 package com.github.wensimin.ashioarae.controller.exception;
 
+import org.apache.tomcat.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -7,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.SocketTimeoutException;
 
 /**
@@ -23,7 +26,9 @@ public class ExceptionController {
         if (exception.getCause() instanceof SocketTimeoutException) {
             return exception(new AshiTimeoutException("time out"));
         }
-        logger.error(exception.getLocalizedMessage());
+        StringWriter errors = new StringWriter();
+        exception.printStackTrace(new PrintWriter(errors));
+        logger.error(errors.toString());
         return new ResponseEntity<>(new ExceptionEntity(exception.getMessage(), ExceptionType.error),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }

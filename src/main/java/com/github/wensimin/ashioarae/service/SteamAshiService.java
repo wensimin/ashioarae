@@ -34,6 +34,9 @@ public class SteamAshiService implements AshioaraeInterface {
     @Override
     public void updateHeadImage(String cookie, File file) {
         var cookieMap = HttpUtils.cookie2map(cookie);
+        if (cookieMap.size() == 0) {
+            throw new CookieExpireException("steam cookie null");
+        }
         var sessionId = cookieMap.get("sessionid");
         var sId = cookieMap.get("steamRememberLogin");
         sId = sId.substring(0, sId.indexOf("%7C%7C"));
