@@ -32,7 +32,6 @@ public class SysUserService implements UserDetailsService {
     public SysUser register(SysUser user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user = this.sysUserDao.save(user);
-        user.setPassword(null);
         return user;
     }
 }
