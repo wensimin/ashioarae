@@ -1,6 +1,5 @@
 package com.github.wensimin.ashioarae.controller.exception;
 
-import org.apache.tomcat.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
