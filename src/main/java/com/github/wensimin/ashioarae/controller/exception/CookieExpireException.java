@@ -7,4 +7,8 @@ public class CookieExpireException extends AshiException {
     public CookieExpireException(String message) {
         super(message, ExceptionType.cookie);
     }
+
+    public CookieExpireException() {
+        super("cookie 过期");
+    }
 }
