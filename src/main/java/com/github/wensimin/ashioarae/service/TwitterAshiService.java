@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
 import com.github.wensimin.ashioarae.entity.AshiData;
+import com.github.wensimin.ashioarae.entity.TarCookie;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
 import com.github.wensimin.ashioarae.service.utils.HttpUtils;
 import org.springframework.core.io.FileSystemResource;
@@ -15,9 +16,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
 
 /**
  * twitter service
@@ -31,32 +30,32 @@ public class TwitterAshiService implements AshioaraeInterface {
     private static final String HEAD_URL = "https://api.twitter.com/1.1/account/update_profile_image.json";
 
     @Override
-    public void updateHeadImage(String cookie, File file) {
-        long mediaId = this.uploadFile(cookie, file);
+    public void updateHeadImage(List<TarCookie> cookies, File file) {
+        long mediaId = this.uploadFile(cookies, file);
         HttpHeaders headers = new HttpHeaders();
-        String token = HttpUtils.cookie2map(cookie).get("ct0");
+        String token = HttpUtils.getAttrInCookie(cookies,"ct0").getValue();
         // oauth2 认证令牌疑似全部公用同一个,令人震惊
         headers.add("authorization", "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA");
         headers.add("x-csrf-token", token);
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("media_id", mediaId);
-        HttpUtils.post(HEAD_URL, headers, body, cookie, String.class, true);
+        HttpUtils.post(HEAD_URL, headers, body, cookies, String.class, true);
     }
 
     /**
      * 上传文件3步骤
      *
-     * @param cookie cookie
+     * @param cookies cookies
      * @param file   文件
      * @return 文件上传后的media id
      */
-    private long uploadFile(String cookie, File file) {
+    private long uploadFile(List<TarCookie> cookies, File file) {
         long fileSize = file.length();
         var uploadInitUrl = UPLOAD_URL + "?command=INIT&total_bytes=" + fileSize;
         HttpHeaders headers = new HttpHeaders();
         headers.add("referer", "https://twitter.com/settings/profile");
-        var initRes = HttpUtils.post(uploadInitUrl, headers, cookie, TwitterResponse.class, true);
+        var initRes = HttpUtils.post(uploadInitUrl, headers, cookies, TwitterResponse.class, true);
         this.checkRes(initRes);
         long mediaId = initRes.getMediaId();
         var appendUrl = UPLOAD_URL + "?command=APPEND&media_id=" + mediaId + "&segment_index=0";
@@ -64,12 +63,12 @@ public class TwitterAshiService implements AshioaraeInterface {
         MultiValueMap<String, Object> body
                 = new LinkedMultiValueMap<>();
         body.add("media", new FileSystemResource(file));
-        var appendRes = HttpUtils.post(appendUrl, headers, body, cookie, TwitterResponse.class, true);
+        var appendRes = HttpUtils.post(appendUrl, headers, body, cookies, TwitterResponse.class, true);
         this.checkRes(appendRes);
         var finalizeUrl = UPLOAD_URL + "?command=FINALIZE&media_id=" + mediaId;
         headers = new HttpHeaders();
         headers.add("referer", "https://twitter.com/settings/profile");
-        var finalizeRes = HttpUtils.post(finalizeUrl, headers, cookie, TwitterResponse.class, true);
+        var finalizeRes = HttpUtils.post(finalizeUrl, headers, cookies, TwitterResponse.class, true);
         this.checkRes(finalizeRes);
         mediaId = finalizeRes.getMediaId();
         return mediaId;
@@ -85,13 +84,8 @@ public class TwitterAshiService implements AshioaraeInterface {
     }
 
     @Override
-    public void updateNickname(String cookie, String nickname) {
-        throw new AshiException("twitter 昵称TODO");
-    }
-
-    @Override
-    public AshiData getInfo(String cookie) {
-        String html = HttpUtils.get(HOME_URL, cookie, String.class, true);
+    public AshiData getInfo(List<TarCookie> cookies) {
+        String html = HttpUtils.get(HOME_URL, cookies, String.class, true);
         // 正则可能有命名空间问题,目前未发现问题
         String name = this.getAttr(html, "name");
         String headImage = this.getAttr(html, "profile_image_url_https");

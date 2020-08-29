@@ -1,9 +1,12 @@
 package com.github.wensimin.ashioarae.service;
 
+import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import com.github.wensimin.ashioarae.entity.AshiData;
+import com.github.wensimin.ashioarae.entity.TarCookie;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * 同步service的接口类
@@ -13,26 +16,32 @@ public interface AshioaraeInterface {
     /**
      * 更新头像
      *
-     * @param cookie cookie
+     * @param cookies cookies
      * @param file   头像文件
      */
-    void updateHeadImage(String cookie, File file);
+    default void updateHeadImage(List<TarCookie> cookies, File file) {
+        throw new AshiException("todo");
+    }
 
     /**
      * 更新昵称
      *
-     * @param cookie   cookie
+     * @param cookies   cookies
      * @param nickname 昵称
      */
-    void updateNickname(String cookie, String nickname);
+    default void updateNickname(List<TarCookie> cookies, String nickname) {
+        throw new AshiException("昵称 未实现");
+    }
 
     /**
-     * 检查cookie的有效性
+     * 获取用户信息
      *
-     * @param cookie 检查cookie的有效性
-     * @return 是否有效
+     * @param cookies cookie
+     * @return 用户信息
      */
-    AshiData getInfo(String cookie);
+    default AshiData getInfo(List<TarCookie> cookies) {
+        throw new AshiException("todo");
+    }
 
     /**
      * 获取目标站类型

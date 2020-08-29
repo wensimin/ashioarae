@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
+import com.github.wensimin.ashioarae.entity.TarCookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -22,10 +23,12 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * http工具类
@@ -112,12 +115,18 @@ public class HttpUtils {
         return response.getBody();
     }
 
-    public static <T> T get(String url, String cookie, Class<T> type, boolean proxy) {
-        return get(url, new HttpHeaders(), cookie, type, proxy);
+    public static <T> T get(String url, List<TarCookie> cookies, Class<T> type, boolean proxy) {
+        return get(url, new HttpHeaders(), cookies, type, proxy);
     }
 
-    public static <T> T get(String url, String cookie, Class<T> type) {
-        return get(url, cookie, type, false);
+
+    public static <T> T get(String url, List<TarCookie> cookies, Class<T> type) {
+        return get(url, cookies, type, false);
+    }
+
+    public static <T> T get(String url, HttpHeaders headers, List<TarCookie> cookies, Class<T> type, boolean proxy) {
+        String cookieString = cookie2String(getCookieByUrl(cookies, url));
+        return get(url, headers, cookieString, type, proxy);
     }
 
 
@@ -143,26 +152,36 @@ public class HttpUtils {
         return response.getBody();
     }
 
-    public static <T> T post(String url, MultiValueMap<String, Object> body, String cookie, Class<T> type, boolean proxy) {
+
+    public static <T> T post(String url, MultiValueMap<String, Object> body, List<TarCookie> cookies, Class<T> type, boolean proxy) {
         HttpHeaders headers = new HttpHeaders();
-        return post(url, headers, body, cookie, type, proxy);
+        return post(url, headers, body, cookies, type, proxy);
     }
 
-    public static <T> T post(String url, MultiValueMap<String, Object> body, String cookie, Class<T> type) {
+
+    public static <T> T post(String url, MultiValueMap<String, Object> body, List<TarCookie> cookies, Class<T> type) {
         HttpHeaders headers = new HttpHeaders();
-        return post(url, headers, body, cookie, type, false);
+        return post(url, headers, body, cookies, type, false);
     }
 
-    public static <T> T post(String url, HttpHeaders headers, MultiValueMap<String, Object> body, String cookie, Class<T> type) {
-        return post(url, headers, body, cookie, type, false);
+
+    public static <T> T post(String url, HttpHeaders headers, MultiValueMap<String, Object> body, List<TarCookie> cookies, Class<T> type) {
+        return post(url, headers, body, cookies, type, false);
     }
 
-    public static <T> T post(String url, HttpHeaders headers, String cookie, Class<T> type, boolean proxy) {
-        return post(url, headers, new LinkedMultiValueMap<>(), cookie, type, proxy);
+
+    public static <T> T post(String url, HttpHeaders headers, List<TarCookie> cookies, Class<T> type, boolean proxy) {
+        return post(url, headers, new LinkedMultiValueMap<>(), cookies, type, proxy);
     }
 
-    public static <T> T post(String url, HttpHeaders headers, String cookie, Class<T> type) {
-        return post(url, headers, cookie, type, false);
+
+    public static <T> T post(String url, HttpHeaders headers, List<TarCookie> cookies, Class<T> type) {
+        return post(url, headers, cookies, type, false);
+    }
+
+    public static <T> T post(String url, HttpHeaders headers, MultiValueMap<String, Object> body, List<TarCookie> cookies, Class<T> type, boolean proxy) {
+        String cookieString = cookie2String(getCookieByUrl(cookies, url));
+        return post(url, headers, body, cookieString, type, proxy);
     }
 
 
@@ -214,6 +233,42 @@ public class HttpUtils {
                 throw new AshiException("error: " + response.getStatusCode());
             }
         }
+    }
+
+    /**
+     * 查询cookie中指定name的第一个值
+     *
+     * @param cookies cookies
+     * @param name    name
+     * @return 第一个name对应
+     */
+    public static TarCookie getAttrInCookie(List<TarCookie> cookies, String name) {
+        return cookies.stream().filter(c -> c.getName().equals(name)).findFirst().orElse(null);
+    }
+
+    /**
+     * 获取url下能使用的cookie
+     *
+     * @param cookies cookies
+     * @param url     url
+     * @return cookies
+     */
+    public static List<TarCookie> getCookieByUrl(List<TarCookie> cookies, String url) {
+        return cookies.stream().filter(c -> url.contains(c.getDomain()) && url.contains(c.getPath())).collect(Collectors.toList());
+    }
+
+    /**
+     * 将cookie转化成String
+     *
+     * @param cookies cookie
+     * @return string
+     */
+    public static String cookie2String(List<TarCookie> cookies) {
+        StringBuilder cookieString = new StringBuilder();
+        for (var c : cookies) {
+            cookieString.append(c.getName()).append("=").append(c.getValue()).append(";");
+        }
+        return cookieString.toString();
     }
 
 }

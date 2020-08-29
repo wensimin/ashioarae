@@ -1,17 +1,19 @@
 package com.github.wensimin.ashioarae.service;
 
+import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import com.github.wensimin.ashioarae.dao.AshiTargetDao;
 import com.github.wensimin.ashioarae.dao.PreAshiDao;
 import com.github.wensimin.ashioarae.dao.SysUserDao;
+import com.github.wensimin.ashioarae.dao.TarCookieDao;
 import com.github.wensimin.ashioarae.entity.AshiData;
 import com.github.wensimin.ashioarae.entity.AshiTarget;
 import com.github.wensimin.ashioarae.entity.PreAshi;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
-import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.io.File;
 import java.util.List;
 
@@ -22,14 +24,16 @@ public class AshiService {
     private final AshiTargetDao ashiTargetDao;
     private final SysUserDao sysUserDao;
     private final PreAshiDao preAshiDao;
+    private final TarCookieDao tarCookieDao;
     private final List<AshioaraeInterface> ashioaraeInterfaceList;
 
     @Autowired
-    public AshiService(AshiTargetDao ashiTargetDao, SysUserDao sysUserDao, PreAshiDao preAshiDao, List<AshioaraeInterface> ashioaraeInterfaceList) {
+    public AshiService(AshiTargetDao ashiTargetDao, SysUserDao sysUserDao, PreAshiDao preAshiDao, List<AshioaraeInterface> ashioaraeInterfaceList, TarCookieDao tarCookieDao) {
         this.ashiTargetDao = ashiTargetDao;
         this.sysUserDao = sysUserDao;
         this.preAshiDao = preAshiDao;
         this.ashioaraeInterfaceList = ashioaraeInterfaceList;
+        this.tarCookieDao = tarCookieDao;
     }
 
     /**
@@ -39,14 +43,22 @@ public class AshiService {
      * @param username   当前用户
      * @return ashi对象
      */
+    @Transactional
     public AshiTarget save(AshiTarget ashiTarget, String username) {
         var user = sysUserDao.findByUsername(username);
         var oldAshi = ashiTargetDao.findBySysUserAndType(user, ashiTarget.getType());
+        var cookies = ashiTarget.getCookies();
         if (oldAshi != null && !oldAshi.getId().equals(ashiTarget.getId())) {
             ashiTarget.setId(oldAshi.getId());
         }
         ashiTarget.setSysUser(user);
-        return ashiTargetDao.save(ashiTarget);
+        ashiTarget = ashiTargetDao.save(ashiTarget);
+        tarCookieDao.deleteByAshiTarget(ashiTarget);
+        for (var c : cookies) {
+            c.setAshiTarget(ashiTarget);
+            tarCookieDao.save(c);
+        }
+        return ashiTarget;
     }
 
     /**
@@ -61,7 +73,7 @@ public class AshiService {
         var preAshi =preAshiDao.findBySysUser(user);
         File file = new File(fileBasePath + "/" + preAshi.getHeadImage());
         AshioaraeInterface service = getService(type);
-        service.updateHeadImage(ashi.getCookie(), file);
+        service.updateHeadImage(ashi.getCookies(), file);
     }
 
     /**
@@ -75,7 +87,7 @@ public class AshiService {
         var ashi = ashiTargetDao.findBySysUserAndType(user, type);
         var preAshi =preAshiDao.findBySysUser(user);
         AshioaraeInterface service = getService(type);
-        service.updateNickname(ashi.getCookie(), preAshi.getNickname());
+        service.updateNickname(ashi.getCookies(), preAshi.getNickname());
     }
 
     /**
@@ -89,7 +101,7 @@ public class AshiService {
         var user = sysUserDao.findByUsername(username);
         var ashi = ashiTargetDao.findBySysUserAndType(user, type);
         AshioaraeInterface service = getService(type);
-        return service.getInfo(ashi.getCookie());
+        return service.getInfo(ashi.getCookies());
     }
 
     /**

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
 import com.github.wensimin.ashioarae.entity.AshiData;
+import com.github.wensimin.ashioarae.entity.TarCookie;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
 import com.github.wensimin.ashioarae.service.utils.HttpUtils;
 import org.springframework.core.io.FileSystemResource;
@@ -16,6 +17,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.HtmlUtils;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,13 +34,12 @@ public class SteamAshiService implements AshioaraeInterface {
     private static final String INFO_URL = "https://steamcommunity.com/miniprofile/%s/json";
 
     @Override
-    public void updateHeadImage(String cookie, File file) {
-        var cookieMap = HttpUtils.cookie2map(cookie);
-        if (cookieMap.size() == 0) {
+    public void updateHeadImage(List<TarCookie> cookies, File file) {
+        if (cookies.size() == 0) {
             throw new CookieExpireException("steam cookie null");
         }
-        var sessionId = cookieMap.get("sessionid");
-        var sId = cookieMap.get("steamRememberLogin");
+        var sessionId = HttpUtils.getAttrInCookie(cookies,"sessionid").getValue();
+        var sId = HttpUtils.getAttrInCookie(cookies,"steamRememberLogin").getValue();
         sId = sId.substring(0, sId.indexOf("%7C%7C"));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -50,19 +51,14 @@ public class SteamAshiService implements AshioaraeInterface {
         body.add("sessionid", sessionId);
         body.add("doSub", 1);
         body.add("json", 1);
-        UpdateResponse res = HttpUtils.post(HEAD_URL, headers, body, cookie, UpdateResponse.class, true);
+        UpdateResponse res = HttpUtils.post(HEAD_URL, headers, body, cookies, UpdateResponse.class, true);
         this.checkRes(res);
     }
 
 
     @Override
-    public void updateNickname(String cookie, String nickname) {
-        throw new AshiException("steam 同步昵称暂不支持");
-    }
-
-    @Override
-    public AshiData getInfo(String cookie) {
-        String html = HttpUtils.get(HOME_URL, cookie, String.class, true);
+    public AshiData getInfo(List<TarCookie> cookies) {
+        String html = HttpUtils.get(HOME_URL, cookies, String.class, true);
         Matcher matcher = INFO_REGEX.matcher(html);
         if (!matcher.find()) {
             throw new RuntimeException("steam 捕获出错,检查api");
@@ -75,7 +71,7 @@ public class SteamAshiService implements AshioaraeInterface {
         Map<String, String> infoMap = HttpUtils.json2Map(info);
         String accountId = infoMap.get("accountid");
         String infoUrl = String.format(INFO_URL, accountId);
-        SteamInfo steamInfo = HttpUtils.get(infoUrl, cookie, SteamInfo.class, true);
+        SteamInfo steamInfo = HttpUtils.get(infoUrl, cookies, SteamInfo.class, true);
         return new AshiData(steamInfo.getNickname(), steamInfo.getHeadImage());
     }
 

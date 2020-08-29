@@ -1,11 +1,13 @@
 package com.github.wensimin.ashioarae.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * 更新目标实体
@@ -18,10 +20,12 @@ public class AshiTarget {
     @NotNull
     @Column(nullable = false)
     private AshiType type;
-
     @NotEmpty
     @Column(nullable = false, length = 81920)
     private String cookie;
+    @OneToMany(mappedBy = "ashiTarget", fetch = FetchType.EAGER)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private List<TarCookie> cookies;
     @JoinColumn(nullable = false)
     @ManyToOne
     @JsonIgnore
@@ -51,6 +55,13 @@ public class AshiTarget {
         this.cookie = cookie;
     }
 
+    public List<TarCookie> getCookies() {
+        return cookies;
+    }
+
+    public void setCookies(List<TarCookie> cookies) {
+        this.cookies = cookies;
+    }
 
     public SysUser getSysUser() {
         return sysUser;

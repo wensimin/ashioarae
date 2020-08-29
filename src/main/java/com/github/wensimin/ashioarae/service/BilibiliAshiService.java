@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
 import com.github.wensimin.ashioarae.entity.AshiData;
+import com.github.wensimin.ashioarae.entity.TarCookie;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
 import com.github.wensimin.ashioarae.service.utils.HttpUtils;
 import org.springframework.http.HttpHeaders;
@@ -15,6 +16,7 @@ import org.springframework.util.MultiValueMap;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -27,11 +29,12 @@ public class BilibiliAshiService implements AshioaraeInterface {
     private static final String INFO_API = "https://api.bilibili.com/x/member/web/account";
     private static final String HEAD_API = "https://account.bilibili.com/pendant/current";
 
+
+
     @Override
-    public void updateHeadImage(String cookie, File file) {
-        var cookieMap = HttpUtils.cookie2map(cookie);
-        var csrf = cookieMap.get("bili_jct");
-        var url = UPDATE_HEAD_API + "?csrf=" + csrf;
+    public void updateHeadImage(List<TarCookie> cookies, File file) {
+        var csrf = HttpUtils.getAttrInCookie(cookies, "bili_jct");
+        var url = UPDATE_HEAD_API + "?csrf=" + csrf.getValue();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         MultiValueMap<String, Object> body
@@ -43,19 +46,15 @@ public class BilibiliAshiService implements AshioaraeInterface {
         }
         body.add("dopost", "save");
         body.add("Displayrank", "1000");
-        this.checkRes(HttpUtils.post(url,headers,body,cookie,BilibiliResponse.class));
+        this.checkRes(HttpUtils.post(url, headers, body, cookies, BilibiliResponse.class));
     }
 
 
-    @Override
-    public void updateNickname(String cookie, String nickname) {
-        throw new AshiException("更新用户名需要消耗硬币,暂时不支持自动");
-    }
 
     @Override
-    public AshiData getInfo(String cookie) {
-        BilibiliResponse infoResponse = HttpUtils.get(INFO_API,cookie,BilibiliResponse.class);
-        BilibiliResponse headResponse = HttpUtils.get(HEAD_API,cookie,BilibiliResponse.class);
+    public AshiData getInfo(List<TarCookie> cookies) {
+        BilibiliResponse infoResponse = HttpUtils.get(INFO_API, cookies, BilibiliResponse.class);
+        BilibiliResponse headResponse = HttpUtils.get(HEAD_API, cookies, BilibiliResponse.class);
         checkRes(infoResponse);
         checkRes(headResponse);
         String name = Optional.of(infoResponse)
