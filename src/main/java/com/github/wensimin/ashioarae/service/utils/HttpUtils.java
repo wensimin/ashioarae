@@ -254,7 +254,14 @@ public class HttpUtils {
      * @return cookies
      */
     public static List<TarCookie> getCookieByUrl(List<TarCookie> cookies, String url) {
-        return cookies.stream().filter(c -> url.contains(c.getDomain()) && url.contains(c.getPath())).collect(Collectors.toList());
+        return cookies.stream().filter(c -> {
+            var domain = c.getDomain();
+            // 以.开头的cookie domain 需要匹配本身
+            if (domain.charAt(0) == '.') {
+                domain = domain.substring(1);
+            }
+            return url.contains(domain) && url.contains(c.getPath());
+        }).collect(Collectors.toList());
     }
 
     /**

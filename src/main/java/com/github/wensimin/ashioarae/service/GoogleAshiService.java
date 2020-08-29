@@ -14,6 +14,7 @@ import java.util.List;
 public class GoogleAshiService implements AshioaraeInterface {
     private static final String INFO_URL = "https://myaccount.google.com/";
 
+    private static final String INFO_DIV_REGEX = "<div class=\"gb_Va gb_nd gb_Pg gb_i gb_1f\">.+<\\/div>";
     private static final String NICK_REGEX = "(?<=<div class=\"gb_ub gb_vb\">).+?(?=<\\/div>)";
     private static final String HEAD_REGEX = "(?<=<img class=\"gb_7b gb_nb\" .+ data-src=\").+?(?=\" alt=\"\" aria-hidden=\"true\">)";
 
@@ -21,11 +22,12 @@ public class GoogleAshiService implements AshioaraeInterface {
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
         String html = HttpUtils.get(INFO_URL, cookies, String.class, true);
-        String nickname = HttpUtils.RexHtml(html, NICK_REGEX);
+        String div = HttpUtils.RexHtml(html, INFO_DIV_REGEX);
+        String nickname = HttpUtils.RexHtml(div, NICK_REGEX);
         if (StringUtils.isEmpty(nickname)) {
             throw new CookieExpireException();
         }
-        String headImage = HttpUtils.RexHtml(html, HEAD_REGEX);
+        String headImage = HttpUtils.RexHtml(div, HEAD_REGEX);
         headImage = headImage.replace("s48", "s400");
         return new AshiData(nickname, headImage);
     }
