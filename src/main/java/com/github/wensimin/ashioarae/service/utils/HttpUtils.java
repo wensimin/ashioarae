@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -62,15 +62,23 @@ public class HttpUtils {
      * @param proxy 是否使用代理
      * @return restTemplate
      */
-    private static RestTemplate buildRestTemplate(boolean proxy) {
+    private static RestTemplate buildRestTemplate(boolean proxy, HttpMessageConverter<?> converter) {
         RestTemplate restTemplate;
         if (proxy) {
             restTemplate = new RestTemplate(proxyFactory);
         } else {
             restTemplate = new RestTemplate(requestFactory);
         }
+        // 全局error handler
         restTemplate.setErrorHandler(errorhandler);
+        if (converter != null) {
+            restTemplate.getMessageConverters().add(converter);
+        }
         return restTemplate;
+    }
+
+    private static RestTemplate buildRestTemplate(boolean proxy) {
+        return buildRestTemplate(proxy, null);
     }
 
     /**
@@ -115,6 +123,7 @@ public class HttpUtils {
         return response.getBody();
     }
 
+
     public static <T> T get(String url, List<TarCookie> cookies, Class<T> type, boolean proxy) {
         return get(url, new HttpHeaders(), cookies, type, proxy);
     }
@@ -141,31 +150,29 @@ public class HttpUtils {
      * @param <T>     type
      * @return body
      */
-    public static <T> T post(String url, HttpHeaders headers, MultiValueMap<String, Object> body, String cookie, Class<T> type, boolean proxy) {
-        RestTemplate restTemplate = buildRestTemplate(proxy);
+    public static <T> T post(String url, HttpHeaders headers, Object body, String cookie, Class<T> type, boolean proxy, HttpMessageConverter<?> converter) {
+        RestTemplate restTemplate = buildRestTemplate(proxy, converter);
         headers.add("cookie", cookie);
         headers.add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36");
-        HttpEntity<MultiValueMap<String, Object>> requestEntity
-                = new HttpEntity<>(body, headers);
         ResponseEntity<T> response = restTemplate
-                .postForEntity(url, requestEntity, type);
+                .postForEntity(url, new HttpEntity<>(body, headers), type);
         return response.getBody();
     }
 
 
-    public static <T> T post(String url, MultiValueMap<String, Object> body, List<TarCookie> cookies, Class<T> type, boolean proxy) {
+    public static <T> T post(String url, Object body, List<TarCookie> cookies, Class<T> type, boolean proxy) {
         HttpHeaders headers = new HttpHeaders();
         return post(url, headers, body, cookies, type, proxy);
     }
 
 
-    public static <T> T post(String url, MultiValueMap<String, Object> body, List<TarCookie> cookies, Class<T> type) {
+    public static <T> T post(String url, Object body, List<TarCookie> cookies, Class<T> type) {
         HttpHeaders headers = new HttpHeaders();
         return post(url, headers, body, cookies, type, false);
     }
 
 
-    public static <T> T post(String url, HttpHeaders headers, MultiValueMap<String, Object> body, List<TarCookie> cookies, Class<T> type) {
+    public static <T> T post(String url, HttpHeaders headers, Object body, List<TarCookie> cookies, Class<T> type) {
         return post(url, headers, body, cookies, type, false);
     }
 
@@ -179,9 +186,13 @@ public class HttpUtils {
         return post(url, headers, cookies, type, false);
     }
 
-    public static <T> T post(String url, HttpHeaders headers, MultiValueMap<String, Object> body, List<TarCookie> cookies, Class<T> type, boolean proxy) {
+    public static <T> T post(String url, HttpHeaders headers, Object body, List<TarCookie> cookies, Class<T> type, boolean proxy) {
+        return post(url, headers, body, cookies, type, proxy, null);
+    }
+
+    public static <T> T post(String url, HttpHeaders headers, Object body, List<TarCookie> cookies, Class<T> type, boolean proxy, HttpMessageConverter<?> converter) {
         String cookieString = cookie2String(getCookieByUrl(cookies, url));
-        return post(url, headers, body, cookieString, type, proxy);
+        return post(url, headers, body, cookieString, type, proxy, converter);
     }
 
 

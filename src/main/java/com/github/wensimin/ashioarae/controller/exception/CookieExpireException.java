@@ -9,6 +9,6 @@ public class CookieExpireException extends AshiException {
     }
 
     public CookieExpireException() {
-        super("cookie 过期");
+        this("cookie 过期");
     }
 }

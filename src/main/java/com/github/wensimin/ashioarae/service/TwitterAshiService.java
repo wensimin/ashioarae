@@ -33,7 +33,11 @@ public class TwitterAshiService implements AshioaraeInterface {
     public void updateHeadImage(List<TarCookie> cookies, File file) {
         long mediaId = this.uploadFile(cookies, file);
         HttpHeaders headers = new HttpHeaders();
-        String token = HttpUtils.getAttrInCookie(cookies,"ct0").getValue();
+        TarCookie ct0 = HttpUtils.getAttrInCookie(cookies, "ct0");
+        if (ct0 == null) {
+            throw new CookieExpireException();
+        }
+        String token = ct0.getValue();
         // oauth2 认证令牌疑似全部公用同一个,令人震惊
         headers.add("authorization", "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA");
         headers.add("x-csrf-token", token);
