@@ -28,6 +28,7 @@ import java.util.Optional;
 /**
  * google service
  * google的api相对非常老旧,并且规范很差,此service使用了部分hack实现,有效性存疑
+ * 其次,google的各平台同步头像机制比较奇怪,缓存也比较多.待观察此头像修改后的同步情况
  */
 @Service
 public class GoogleAshiService implements AshioaraeInterface {
