@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -20,9 +19,6 @@ public class AshiTarget {
     @NotNull
     @Column(nullable = false)
     private AshiType type;
-    @NotEmpty
-    @Column(nullable = false, length = 81920)
-    private String cookie;
     @OneToMany(mappedBy = "ashiTarget", fetch = FetchType.EAGER)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private List<TarCookie> cookies;
@@ -45,14 +41,6 @@ public class AshiTarget {
 
     public void setType(AshiType type) {
         this.type = type;
-    }
-
-    public String getCookie() {
-        return cookie;
-    }
-
-    public void setCookie(String cookie) {
-        this.cookie = cookie;
     }
 
     public List<TarCookie> getCookies() {
