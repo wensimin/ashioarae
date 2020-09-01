@@ -43,8 +43,7 @@ public class SteamAshiService implements AshioaraeInterface {
         sId = sId.substring(0, sId.indexOf("%7C%7C"));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        MultiValueMap<String, Object> body
-                = new LinkedMultiValueMap<>();
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("avatar", new FileSystemResource(file));
         body.add("type", "player_avatar_image");
         body.add("sId", sId);
