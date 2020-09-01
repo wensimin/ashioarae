@@ -37,8 +37,7 @@ public class BilibiliAshiService implements AshioaraeInterface {
         var url = UPDATE_HEAD_API + "?csrf=" + csrf.getValue();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        MultiValueMap<String, Object> body
-                = new LinkedMultiValueMap<>();
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         try {
             body.add("face", Files.readAllBytes(file.toPath()));
         } catch (IOException e) {
