@@ -3,6 +3,7 @@ package com.github.wensimin.ashioarae.entity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * ashi target 的 cookie
@@ -71,5 +72,21 @@ public class TarCookie {
 
     public void setAshiTarget(AshiTarget ashiTarget) {
         this.ashiTarget = ashiTarget;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TarCookie tarCookie = (TarCookie) o;
+        return name.equals(tarCookie.name) &&
+                value.equals(tarCookie.value) &&
+                domain.equals(tarCookie.domain) &&
+                path.equals(tarCookie.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, value, domain, path);
     }
 }

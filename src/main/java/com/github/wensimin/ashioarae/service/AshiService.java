@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -53,11 +54,17 @@ public class AshiService {
         }
         ashiTarget.setSysUser(user);
         ashiTarget = ashiTargetDao.save(ashiTarget);
-        tarCookieDao.deleteByAshiTarget(ashiTarget);
+        var oldCookies = tarCookieDao.findByAshiTarget(ashiTarget);
+        // delete this
+        var deleteCookies = new ArrayList<>(oldCookies);
+        deleteCookies.removeAll(cookies);
+        // add this
+        cookies.removeAll(oldCookies);
+        tarCookieDao.deleteAll(deleteCookies);
         for (var c : cookies) {
             c.setAshiTarget(ashiTarget);
-            tarCookieDao.save(c);
         }
+        tarCookieDao.saveAll(cookies);
         return ashiTarget;
     }
 
