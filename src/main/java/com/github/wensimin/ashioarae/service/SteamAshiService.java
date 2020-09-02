@@ -7,9 +7,12 @@ import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
 import com.github.wensimin.ashioarae.entity.AshiData;
 import com.github.wensimin.ashioarae.entity.TarCookie;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
+import com.github.wensimin.ashioarae.service.utils.HttpBuilder;
 import com.github.wensimin.ashioarae.service.utils.HttpUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -27,19 +30,25 @@ import java.util.regex.Pattern;
  */
 @Service
 public class SteamAshiService implements AshioaraeInterface {
+    private final HttpBuilder httpBuilder;
     //解析用户信息rex
     private static final Pattern INFO_REGEX = Pattern.compile("(?<=data-userinfo=\").+(?=\")");
     private static final String HOME_URL = "https://steamcommunity.com/";
     private static final String HEAD_URL = "https://steamcommunity.com/actions/FileUploader/";
     private static final String INFO_URL = "https://steamcommunity.com/miniprofile/%s/json";
 
+    @Autowired
+    public SteamAshiService(HttpBuilder httpBuilder) {
+        this.httpBuilder = httpBuilder;
+    }
+
     @Override
     public void updateHeadImage(List<TarCookie> cookies, File file) {
         if (cookies.size() == 0) {
             throw new CookieExpireException("steam cookie null");
         }
-        var sessionId = HttpUtils.getAttrInCookie(cookies,"sessionid").getValue();
-        var sId = HttpUtils.getAttrInCookie(cookies,"steamRememberLogin").getValue();
+        var sessionId = HttpUtils.getAttrInCookie(cookies, "sessionid").getValue();
+        var sId = HttpUtils.getAttrInCookie(cookies, "steamRememberLogin").getValue();
         sId = sId.substring(0, sId.indexOf("%7C%7C"));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -50,14 +59,18 @@ public class SteamAshiService implements AshioaraeInterface {
         body.add("sessionid", sessionId);
         body.add("doSub", 1);
         body.add("json", 1);
-        UpdateResponse res = HttpUtils.post(HEAD_URL, headers, body, cookies, UpdateResponse.class, true);
+        UpdateResponse res = httpBuilder.builder()
+                .url(HEAD_URL).method(HttpMethod.POST)
+                .Headers(headers).body(body)
+                .cookies(cookies).proxy().start(UpdateResponse.class);
         this.checkRes(res);
     }
 
 
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
-        String html = HttpUtils.get(HOME_URL, cookies, String.class, true);
+        String html = httpBuilder.builder().url(HOME_URL)
+                .cookies(cookies).proxy().start(String.class);
         Matcher matcher = INFO_REGEX.matcher(html);
         if (!matcher.find()) {
             throw new RuntimeException("steam 捕获出错,检查api");
@@ -70,7 +83,8 @@ public class SteamAshiService implements AshioaraeInterface {
         Map<String, String> infoMap = HttpUtils.json2Map(info);
         String accountId = infoMap.get("accountid");
         String infoUrl = String.format(INFO_URL, accountId);
-        SteamInfo steamInfo = HttpUtils.get(infoUrl, cookies, SteamInfo.class, true);
+        SteamInfo steamInfo = httpBuilder.builder().url(infoUrl)
+                .cookies(cookies).proxy().start(SteamInfo.class);
         return new AshiData(steamInfo.getNickname(), steamInfo.getHeadImage());
     }
 

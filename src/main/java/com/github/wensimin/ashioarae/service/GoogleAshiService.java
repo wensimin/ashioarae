@@ -1,19 +1,20 @@
 package com.github.wensimin.ashioarae.service;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
 import com.github.wensimin.ashioarae.entity.AshiData;
 import com.github.wensimin.ashioarae.entity.TarCookie;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
+import com.github.wensimin.ashioarae.service.utils.HttpBuilder;
 import com.github.wensimin.ashioarae.service.utils.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,7 @@ import java.util.Optional;
 @Service
 public class GoogleAshiService implements AshioaraeInterface {
     private static final Logger logger = LoggerFactory.getLogger(GoogleAshiService.class);
-
+    private final HttpBuilder httpBuilder;
     private static final String INFO_URL = "https://myaccount.google.com/";
     private static final String PICK_URL = "https://docs.google.com/picker";
     private static final String UPLOAD_URL_1 = "https://docs.google.com/upload/photos/resumable?authuser=0";
@@ -46,9 +47,14 @@ public class GoogleAshiService implements AshioaraeInterface {
     // attr正则,一个小hack 使用','开头来分开x-token与token,但是无法抓取到第一个值,不过似乎在这里没有影响
     private static final String ATTR_REGEX = "(?<=,%s:').+?(?=')";
 
+    @Autowired
+    public GoogleAshiService(HttpBuilder httpBuilder) {
+        this.httpBuilder = httpBuilder;
+    }
+
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
-        String html = HttpUtils.get(INFO_URL, cookies, String.class, true);
+        String html = httpBuilder.builder().url(INFO_URL).cookies(cookies).proxy().start(String.class);
         String div = HttpUtils.RexHtml(html, INFO_DIV_REGEX);
         String nickname = HttpUtils.RexHtml(div, NICK_REGEX);
         if (StringUtils.isEmpty(nickname)) {
@@ -61,7 +67,7 @@ public class GoogleAshiService implements AshioaraeInterface {
 
     @Override
     public void updateHeadImage(List<TarCookie> cookies, File file) {
-        String pickHtml = HttpUtils.get(PICK_URL, cookies, String.class, true);
+        String pickHtml = httpBuilder.builder().url(PICK_URL).cookies(cookies).proxy().start(String.class);
         var token = HttpUtils.RexHtml(pickHtml, String.format(ATTR_REGEX, "token"));
         var xToken = HttpUtils.RexHtml(pickHtml, String.format(ATTR_REGEX, "xtoken"));
         var userId = HttpUtils.RexHtml(pickHtml, String.format(ATTR_REGEX, "userId"));
@@ -81,7 +87,12 @@ public class GoogleAshiService implements AshioaraeInterface {
                 "&version=4&app=2&" +
                 "clientUser=" + clientUser + "" +
                 "&subapp=5&authuser=0";
-        var res = HttpUtils.post(url, headers, body, cookies, String.class, true);
+        var res = httpBuilder.builder()
+                .method(HttpMethod.POST)
+                .url(url).Headers(headers)
+                .body(body).cookies(cookies)
+                .proxy()
+                .start(String.class);
         logger.debug("google uploadHead final: " + res);
     }
 
@@ -89,7 +100,12 @@ public class GoogleAshiService implements AshioaraeInterface {
         var url = String.format(UPLOAD_URL_2, uploadId);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        var res = HttpUtils.post(url, headers, new FileSystemResource(file), cookies, GoogleResponse.class, true, new GoogleHttpMessageConverter());
+        var res = httpBuilder.builder()
+                .method(HttpMethod.POST)
+                .url(url).Headers(headers)
+                .body(new FileSystemResource(file)).cookies(cookies)
+                .proxy().converter(new GoogleHttpMessageConverter())
+                .start(GoogleResponse.class);
         checkRes(res);
         JsonNode additionalInfo = res.getSessionStatus().getAdditionalInfo();
         return Optional.of(additionalInfo)
@@ -221,7 +237,13 @@ public class GoogleAshiService implements AshioaraeInterface {
                 "    ]\n" +
                 "  }\n" +
                 "}";
-        var res = HttpUtils.post(UPLOAD_URL_1, headers, body, cookies, GoogleResponse.class, true, new GoogleHttpMessageConverter());
+
+        var res = httpBuilder.builder()
+                .method(HttpMethod.POST)
+                .url(UPLOAD_URL_1).Headers(headers)
+                .body(body).cookies(cookies)
+                .proxy().converter(new GoogleHttpMessageConverter())
+                .start(GoogleResponse.class);
         checkRes(res);
         return res.getSessionStatus().getUploadId();
     }

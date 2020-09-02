@@ -6,9 +6,12 @@ import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
 import com.github.wensimin.ashioarae.entity.AshiData;
 import com.github.wensimin.ashioarae.entity.TarCookie;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
+import com.github.wensimin.ashioarae.service.utils.HttpBuilder;
 import com.github.wensimin.ashioarae.service.utils.HttpUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -23,11 +26,17 @@ import java.util.List;
  */
 @Service
 public class TwitterAshiService implements AshioaraeInterface {
+    private final HttpBuilder httpBuilder;
 
     private static final String HOME_URL = "https://twitter.com/home";
     private static final String ATTR_REGEX = "(?<=\"%s\":\").+?(?=\")";
     private static final String UPLOAD_URL = "https://upload.twitter.com/i/media/upload.json";
     private static final String HEAD_URL = "https://api.twitter.com/1.1/account/update_profile_image.json";
+
+    @Autowired
+    public TwitterAshiService(HttpBuilder httpBuilder) {
+        this.httpBuilder = httpBuilder;
+    }
 
     @Override
     public void updateHeadImage(List<TarCookie> cookies, File file) {
@@ -44,7 +53,9 @@ public class TwitterAshiService implements AshioaraeInterface {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("media_id", mediaId);
-        HttpUtils.post(HEAD_URL, headers, body, cookies, String.class, true);
+        httpBuilder.builder().method(HttpMethod.POST)
+                .url(HEAD_URL).Headers(headers).body(body)
+                .cookies(cookies).proxy().start(String.class);
     }
 
     /**
@@ -59,7 +70,9 @@ public class TwitterAshiService implements AshioaraeInterface {
         var uploadInitUrl = UPLOAD_URL + "?command=INIT&total_bytes=" + fileSize;
         HttpHeaders headers = new HttpHeaders();
         headers.add("referer", "https://twitter.com/settings/profile");
-        var initRes = HttpUtils.post(uploadInitUrl, headers, cookies, TwitterResponse.class, true);
+        var initRes = httpBuilder.builder().method(HttpMethod.POST)
+                .url(uploadInitUrl).Headers(headers)
+                .cookies(cookies).proxy().start(TwitterResponse.class);
         this.checkRes(initRes);
         long mediaId = initRes.getMediaId();
         var appendUrl = UPLOAD_URL + "?command=APPEND&media_id=" + mediaId + "&segment_index=0";
@@ -67,12 +80,16 @@ public class TwitterAshiService implements AshioaraeInterface {
         MultiValueMap<String, Object> body
                 = new LinkedMultiValueMap<>();
         body.add("media", new FileSystemResource(file));
-        var appendRes = HttpUtils.post(appendUrl, headers, body, cookies, TwitterResponse.class, true);
+        var appendRes = httpBuilder.builder().method(HttpMethod.POST)
+                .url(appendUrl).Headers(headers).body(body)
+                .cookies(cookies).proxy().start(TwitterResponse.class);
         this.checkRes(appendRes);
         var finalizeUrl = UPLOAD_URL + "?command=FINALIZE&media_id=" + mediaId;
         headers = new HttpHeaders();
         headers.add("referer", "https://twitter.com/settings/profile");
-        var finalizeRes = HttpUtils.post(finalizeUrl, headers, cookies, TwitterResponse.class, true);
+        var finalizeRes = httpBuilder.builder().method(HttpMethod.POST)
+                .url(finalizeUrl).Headers(headers)
+                .cookies(cookies).proxy().start(TwitterResponse.class);
         this.checkRes(finalizeRes);
         mediaId = finalizeRes.getMediaId();
         return mediaId;
@@ -89,7 +106,7 @@ public class TwitterAshiService implements AshioaraeInterface {
 
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
-        String html = HttpUtils.get(HOME_URL, cookies, String.class, true);
+        String html = httpBuilder.builder().url(HOME_URL).cookies(cookies).proxy().start(String.class);
         // 正则可能有命名空间问题,目前未发现问题
         String name = this.getAttr(html, "name");
         String headImage = this.getAttr(html, "profile_image_url_https");

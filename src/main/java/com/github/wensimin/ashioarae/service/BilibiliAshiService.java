@@ -6,8 +6,11 @@ import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
 import com.github.wensimin.ashioarae.entity.AshiData;
 import com.github.wensimin.ashioarae.entity.TarCookie;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
+import com.github.wensimin.ashioarae.service.utils.HttpBuilder;
 import com.github.wensimin.ashioarae.service.utils.HttpUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -24,11 +27,15 @@ import java.util.Optional;
  */
 @Service
 public class BilibiliAshiService implements AshioaraeInterface {
-
+    private final HttpBuilder httpBuilder;
     private static final String UPDATE_HEAD_API = "https://api.bilibili.com/x/member/web/face/update";
     private static final String INFO_API = "https://api.bilibili.com/x/member/web/account";
     private static final String HEAD_API = "https://account.bilibili.com/pendant/current";
 
+    @Autowired
+    public BilibiliAshiService(HttpBuilder httpBuilder) {
+        this.httpBuilder = httpBuilder;
+    }
 
 
     @Override
@@ -45,15 +52,22 @@ public class BilibiliAshiService implements AshioaraeInterface {
         }
         body.add("dopost", "save");
         body.add("Displayrank", "1000");
-        this.checkRes(HttpUtils.post(url, headers, body, cookies, BilibiliResponse.class));
+        var res = httpBuilder.builder()
+                .method(HttpMethod.POST)
+                .url(url)
+                .Headers(headers)
+                .body(body)
+                .cookies(cookies)
+                .start(BilibiliResponse.class);
+        this.checkRes(res);
     }
 
 
 
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
-        BilibiliResponse infoResponse = HttpUtils.get(INFO_API, cookies, BilibiliResponse.class);
-        BilibiliResponse headResponse = HttpUtils.get(HEAD_API, cookies, BilibiliResponse.class);
+        BilibiliResponse infoResponse = httpBuilder.builder().url(INFO_API).cookies(cookies).start(BilibiliResponse.class);
+        BilibiliResponse headResponse = httpBuilder.builder().url(HEAD_API).cookies(cookies).start(BilibiliResponse.class);
         checkRes(infoResponse);
         checkRes(headResponse);
         String name = Optional.of(infoResponse)
