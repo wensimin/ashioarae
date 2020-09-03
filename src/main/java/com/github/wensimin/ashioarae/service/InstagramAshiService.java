@@ -41,7 +41,7 @@ public class InstagramAshiService implements AshioaraeInterface {
 
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
-        var html = httpBuilder.builder().url(INFO_URL).cookies(cookies).proxy().start(String.class);
+        var html = this.infoRequest(cookies);
         var nickName = HttpUtils.RexHtml(html, String.format(PROP_REGEX, "full_name"));
         if (StringUtils.isEmpty(nickName)) {
             throw new CookieExpireException();
@@ -51,14 +51,35 @@ public class InstagramAshiService implements AshioaraeInterface {
         return new AshiData(nickName, headImage);
     }
 
+    private String infoRequest(List<TarCookie> cookies) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("authority", "www.instagram.com");
+        headers.add("cache-control", "max-age=0");
+        headers.add("upgrade-insecure-requests", "1");
+        headers.add("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+        headers.add("sec-fetch-site", "same-origin");
+        headers.add("sec-fetch-mode", "navigate");
+        headers.add("sec-fetch-user", "?1");
+        headers.add("sec-fetch-dest", "document");
+        headers.add("accept-language", "zh-CN,zh;q=0.9,zh-TW;q=0.8,ja;q=0.7,en;q=0.6");
+        return httpBuilder.builder().url(INFO_URL).Headers(headers)
+                .cookies(cookies).proxy().start(String.class);
+    }
+
     @Override
     public void updateHeadImage(List<TarCookie> cookies, File file) {
-        var html = httpBuilder.builder().url(INFO_URL).cookies(cookies).proxy().start(String.class);
+        var html = this.infoRequest(cookies);
         var csrfToken = HttpUtils.RexHtml(html, String.format(PROP_REGEX, "csrf_token"));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         headers.add("x-csrftoken", csrfToken);
         headers.add("x-ig-app-id", "936619743392459");
+        headers.add("origin", "https://www.instagram.com");
+        headers.add("sec-fetch-site", "same-origin");
+        headers.add("sec-fetch-mode", "cors");
+        headers.add("sec-fetch-dest", "empty");
+        headers.add("referer", "https://www.instagram.com/accounts/edit/");
+        headers.add("accept-language", "zh-CN,zh;q=0.9,zh-TW;q=0.8,ja;q=0.7,en;q=0.6");
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("profile_pic", new FileSystemResource(file));
         var res = httpBuilder.builder().method(HttpMethod.POST).url(UPLOAD_URL)
