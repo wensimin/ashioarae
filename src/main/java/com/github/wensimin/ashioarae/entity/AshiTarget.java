@@ -18,6 +18,7 @@ public class AshiTarget {
     private Long id;
     @NotNull
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private AshiType type;
     @OneToMany(mappedBy = "ashiTarget", fetch = FetchType.EAGER)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
