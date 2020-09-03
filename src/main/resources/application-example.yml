@@ -1,0 +1,50 @@
+spring:
+  datasource:
+    url: ''
+    username: ''
+    password: ''
+  jpa:
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: true
+        hbm2ddl:
+          auto: update
+    open-in-view: false
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  redis:
+    host:
+    port:
+    password: ''
+    database:
+
+server:
+  port: 8080
+  servlet:
+    context-path: /ashioarae
+
+management:
+  endpoints:
+    jmx:
+      exposure:
+        exclude: '*'
+    web:
+      exposure:
+        include: health,logfile,loggers
+
+logging:
+  level:
+    root: warn
+    com.github.wensimin.ashioarae: debug
+  file:
+    name: log/log.log
+
+# 默认文件存储位置
+system:
+  file:
+    base-path: '${file-path:file}'
+  proxy:
+    host:
+    port:

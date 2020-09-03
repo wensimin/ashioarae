@@ -1,6 +1,7 @@
 package com.github.wensimin.ashioarae.service;
 
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
+import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
 import com.github.wensimin.ashioarae.entity.AshiData;
 import com.github.wensimin.ashioarae.entity.TarCookie;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
@@ -15,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -42,6 +44,9 @@ public class WeiboAshiService implements AshioaraeInterface {
     public AshiData getInfo(List<TarCookie> cookies) {
         var html = httpBuilder.builder().url(INFO_URL).cookies(cookies).start(String.class);
         var nickName = HttpUtils.RexHtml(html, String.format(PROP_REGEX, "nick"));
+        if (StringUtils.isEmpty(nickName)) {
+            throw new CookieExpireException();
+        }
         var headImage = HttpUtils.RexHtml(html, String.format(PROP_REGEX, "avatar_large"));
         return new AshiData(nickName, headImage);
     }
