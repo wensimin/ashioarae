@@ -30,10 +30,10 @@ public class BaiduAshiService implements AshioaraeInterface {
         var res = httpBuilder.builder().url(INFO_URL).cookies(cookies)
                 .converter(new BaiduHttpMessageConverter())
                 .start(BaiduInfoResponse.class);
-        var data = res.getData();
-        if (data == null) {
+        if (res == null) {
             throw new CookieExpireException();
         }
+        var data = res.getData();
         return new AshiData(data.getNick(), "https://himg.bdimg.com/sys/portrait/item/" + data.getHeadImg());
     }
 

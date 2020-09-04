@@ -2,8 +2,10 @@ package com.github.wensimin.ashioarae.controller.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -30,6 +32,12 @@ public class ExceptionController {
         logger.error(errors.toString());
         return new ResponseEntity<>(new ExceptionEntity(exception.getMessage(), ExceptionType.error),
                 HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ExceptionEntity> exception(MethodArgumentNotValidException exception) {
+        String objectError = exception.getBindingResult().getAllErrors().stream().findFirst().map(DefaultMessageSourceResolvable::getDefaultMessage).orElse(null);
+        return exception(new AshiException(objectError));
     }
 
     @ExceptionHandler(value = AshiException.class)

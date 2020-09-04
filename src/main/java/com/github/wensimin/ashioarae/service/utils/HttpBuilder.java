@@ -111,6 +111,18 @@ public class HttpBuilder {
         }
 
         /**
+         * set header
+         *
+         * @param key   key
+         * @param value value
+         * @return http
+         */
+        public Http Headers(String key, String value) {
+            this.headers.add(key, value);
+            return this;
+        }
+
+        /**
          * set method
          * 默认为GET
          *
