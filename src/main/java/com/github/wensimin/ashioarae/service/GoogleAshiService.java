@@ -56,10 +56,10 @@ public class GoogleAshiService implements AshioaraeInterface {
     public AshiData getInfo(List<TarCookie> cookies) {
         String html = httpBuilder.builder().url(INFO_URL).cookies(cookies).proxy().start(String.class);
         String div = HttpUtils.RexHtml(html, INFO_DIV_REGEX);
-        String nickname = HttpUtils.RexHtml(div, NICK_REGEX);
-        if (StringUtils.isEmpty(nickname)) {
+        if (StringUtils.isEmpty(div)) {
             throw new CookieExpireException();
         }
+        String nickname = HttpUtils.RexHtml(div, NICK_REGEX);
         String headImage = HttpUtils.RexHtml(div, HEAD_REGEX);
         headImage = headImage.replace("s48", "s400");
         return new AshiData(nickname, headImage);
