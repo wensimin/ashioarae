@@ -6,6 +6,3 @@
 TODO
 
 google应该需要使用一次copy,否则会过期
-
-
-baidu每天上限头像修改3次,未实现
