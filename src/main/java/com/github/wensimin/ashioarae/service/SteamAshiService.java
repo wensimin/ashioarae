@@ -61,7 +61,7 @@ public class SteamAshiService implements AshioaraeInterface {
         body.add("json", 1);
         UpdateResponse res = httpBuilder.builder()
                 .url(HEAD_URL).method(HttpMethod.POST)
-                .Headers(headers).body(body)
+                .headers(headers).body(body)
                 .cookies(cookies).proxy().start(UpdateResponse.class);
         this.checkRes(res);
     }

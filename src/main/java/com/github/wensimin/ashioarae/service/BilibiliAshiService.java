@@ -55,7 +55,7 @@ public class BilibiliAshiService implements AshioaraeInterface {
         var res = httpBuilder.builder()
                 .method(HttpMethod.POST)
                 .url(url)
-                .Headers(headers)
+                .headers(headers)
                 .body(body)
                 .cookies(cookies)
                 .start(BilibiliResponse.class);

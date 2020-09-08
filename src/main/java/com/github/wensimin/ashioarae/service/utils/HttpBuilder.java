@@ -105,7 +105,7 @@ public class HttpBuilder {
          * @param headers headers
          * @return http
          */
-        public Http Headers(HttpHeaders headers) {
+        public Http headers(HttpHeaders headers) {
             this.headers.addAll(headers);
             return this;
         }
@@ -117,7 +117,7 @@ public class HttpBuilder {
          * @param value value
          * @return http
          */
-        public Http Headers(String key, String value) {
+        public Http header(String key, String value) {
             this.headers.add(key, value);
             return this;
         }
@@ -171,6 +171,17 @@ public class HttpBuilder {
         }
 
         /**
+         * set 内容类型
+         *
+         * @param mediaType 内容类型
+         * @return http
+         */
+        public Http contentType(MediaType mediaType) {
+            this.headers.setContentType(mediaType);
+            return this;
+        }
+
+        /**
          * 发起http请求
          *
          * @param type 返回值类型
@@ -185,5 +196,7 @@ public class HttpBuilder {
             ResponseEntity<T> response = restTemplate.exchange(url, method, new HttpEntity<>(body, headers), type);
             return response.getBody();
         }
+
+
     }
 }

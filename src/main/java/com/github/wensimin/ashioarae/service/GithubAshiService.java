@@ -72,7 +72,7 @@ public class GithubAshiService implements AshioaraeInterface {
         body.add("cropped_height", res2.getHeight());
         httpBuilder.builder().url(String.format(UPLOAD_URL_3, res2.getId()))
                 .method(HttpMethod.POST)
-                .Headers(headers).body(body)
+                .headers(headers).body(body)
                 .cookies(cookies).proxy().start(String.class);
     }
 
@@ -100,7 +100,7 @@ public class GithubAshiService implements AshioaraeInterface {
         body.add("owner_id", userId);
         return httpBuilder.builder().url(UPLOAD_URL_2)
                 .method(HttpMethod.POST)
-                .Headers(headers).body(body)
+                .headers(headers).body(body)
                 .cookies(cookies).proxy().start(UploadRes2.class);
     }
 
@@ -125,7 +125,7 @@ public class GithubAshiService implements AshioaraeInterface {
         body.add("name", file.getName());
         return httpBuilder.builder().url(UPLOAD_URL_1)
                 .method(HttpMethod.POST)
-                .Headers(headers).body(body)
+                .headers(headers).body(body)
                 .cookies(cookies).proxy().start(UpLoadRes1.class);
     }
 

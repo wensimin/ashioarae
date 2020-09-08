@@ -89,7 +89,7 @@ public class GoogleAshiService implements AshioaraeInterface {
                 "&subapp=5&authuser=0";
         var res = httpBuilder.builder()
                 .method(HttpMethod.POST)
-                .url(url).Headers(headers)
+                .url(url).headers(headers)
                 .body(body).cookies(cookies)
                 .proxy()
                 .start(String.class);
@@ -102,7 +102,7 @@ public class GoogleAshiService implements AshioaraeInterface {
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         var res = httpBuilder.builder()
                 .method(HttpMethod.POST)
-                .url(url).Headers(headers)
+                .url(url).headers(headers)
                 .body(new FileSystemResource(file)).cookies(cookies)
                 .proxy().converter(new GoogleHttpMessageConverter())
                 .start(GoogleResponse.class);
@@ -240,7 +240,7 @@ public class GoogleAshiService implements AshioaraeInterface {
 
         var res = httpBuilder.builder()
                 .method(HttpMethod.POST)
-                .url(UPLOAD_URL_1).Headers(headers)
+                .url(UPLOAD_URL_1).headers(headers)
                 .body(body).cookies(cookies)
                 .proxy().converter(new GoogleHttpMessageConverter())
                 .start(GoogleResponse.class);

@@ -54,7 +54,7 @@ public class TwitterAshiService implements AshioaraeInterface {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("media_id", mediaId);
         httpBuilder.builder().method(HttpMethod.POST)
-                .url(HEAD_URL).Headers(headers).body(body)
+                .url(HEAD_URL).headers(headers).body(body)
                 .cookies(cookies).proxy().start(String.class);
     }
 
@@ -71,7 +71,7 @@ public class TwitterAshiService implements AshioaraeInterface {
         HttpHeaders headers = new HttpHeaders();
         headers.add("referer", "https://twitter.com/settings/profile");
         var initRes = httpBuilder.builder().method(HttpMethod.POST)
-                .url(uploadInitUrl).Headers(headers)
+                .url(uploadInitUrl).headers(headers)
                 .cookies(cookies).proxy().start(TwitterResponse.class);
         this.checkRes(initRes);
         long mediaId = initRes.getMediaId();
@@ -81,14 +81,14 @@ public class TwitterAshiService implements AshioaraeInterface {
                 = new LinkedMultiValueMap<>();
         body.add("media", new FileSystemResource(file));
         var appendRes = httpBuilder.builder().method(HttpMethod.POST)
-                .url(appendUrl).Headers(headers).body(body)
+                .url(appendUrl).headers(headers).body(body)
                 .cookies(cookies).proxy().start(TwitterResponse.class);
         this.checkRes(appendRes);
         var finalizeUrl = UPLOAD_URL + "?command=FINALIZE&media_id=" + mediaId;
         headers = new HttpHeaders();
         headers.add("referer", "https://twitter.com/settings/profile");
         var finalizeRes = httpBuilder.builder().method(HttpMethod.POST)
-                .url(finalizeUrl).Headers(headers)
+                .url(finalizeUrl).headers(headers)
                 .cookies(cookies).proxy().start(TwitterResponse.class);
         this.checkRes(finalizeRes);
         mediaId = finalizeRes.getMediaId();

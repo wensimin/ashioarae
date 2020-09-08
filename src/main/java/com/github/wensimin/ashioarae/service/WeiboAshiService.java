@@ -75,7 +75,7 @@ public class WeiboAshiService implements AshioaraeInterface {
         body.add("type", "jpeg");
         body.add("file_source", "5");
         var res = httpBuilder.builder().url(UPDATE_URL).method(HttpMethod.POST)
-                .Headers(headers).body(body).cookies(cookies)
+                .headers(headers).body(body).cookies(cookies)
                 .start(String.class);
         logger.info("weibo up html:" + res);
     }

@@ -62,7 +62,7 @@ public class InstagramAshiService implements AshioaraeInterface {
         headers.add("sec-fetch-user", "?1");
         headers.add("sec-fetch-dest", "document");
         headers.add("accept-language", "zh-CN,zh;q=0.9,zh-TW;q=0.8,ja;q=0.7,en;q=0.6");
-        return httpBuilder.builder().url(INFO_URL).Headers(headers)
+        return httpBuilder.builder().url(INFO_URL).headers(headers)
                 .cookies(cookies).proxy().start(String.class);
     }
 
@@ -83,7 +83,7 @@ public class InstagramAshiService implements AshioaraeInterface {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("profile_pic", new FileSystemResource(file));
         var res = httpBuilder.builder().method(HttpMethod.POST).url(UPLOAD_URL)
-                .Headers(headers).body(body).cookies(cookies)
+                .headers(headers).body(body).cookies(cookies)
                 .proxy().start(InstagramResponse.class);
         this.checkRes(res);
     }
