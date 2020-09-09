@@ -1,7 +1,9 @@
 package com.github.wensimin.ashioarae.service;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
 import com.github.wensimin.ashioarae.entity.AshiData;
@@ -28,22 +30,27 @@ import java.util.Optional;
 
 /**
  * google service
- * google的api相对非常老旧,并且规范很差,此service使用了部分hack实现,有效性存疑
+ * google的api相对非常老旧,此service使用了部分hack实现,有效性存疑
+ * 一共进行4部分上传
+ * 第一步上传参数预告
+ * 第二步进行文件上传
+ * 第三步将第二部生成的临时文件copy
+ * 最后选择copy后的文件id
  * 其次,google的各平台同步头像机制比较奇怪,缓存也比较多.待观察此头像修改后的同步情况
  */
 @Service
 public class GoogleAshiService implements AshioaraeInterface {
     private static final Logger logger = LoggerFactory.getLogger(GoogleAshiService.class);
     private final HttpBuilder httpBuilder;
-    private static final String INFO_URL = "https://myaccount.google.com/";
+    private static final String INFO_URL = "https://myaccount.google.com/u/0/personal-info";
     private static final String PICK_URL = "https://docs.google.com/picker";
     private static final String UPLOAD_URL_1 = "https://docs.google.com/upload/photos/resumable?authuser=0";
     private static final String UPLOAD_URL_2 = "https://docs.google.com/upload/photos/resumable?authuser=0&upload_id=%s&file_id=000";
     private static final String UPLOAD_URL_3 = "https://docs.google.com/picker/mutate?origin=https%3A%2F%2Fmyaccount.google.com&hostId=ac";
 
-    private static final String INFO_DIV_REGEX = "<div class=\"gb_Va gb_nd gb_Pg gb_i gb_1f\">.+<\\/div>";
-    private static final String NICK_REGEX = "(?<=<div class=\"gb_ub gb_vb\">).+?(?=<\\/div>)";
-    private static final String HEAD_REGEX = "(?<=<img class=\"gb_7b gb_nb\" .+ data-src=\").+?(?=\" alt=\"\" aria-hidden=\"true\">)";
+
+    private static final String NICK_REGEX = "(?<=<div class=\"gb_ub\">).+?(?=<\\/div>)";
+    private static final String HEAD_REGEX = "(?<=<img class=\"gb_La gbii\" src=\").+?(?=\")";
     // attr正则,一个小hack 使用','开头来分开x-token与token,但是无法抓取到第一个值,不过似乎在这里没有影响
     private static final String ATTR_REGEX = "(?<=,%s:').+?(?=')";
 
@@ -55,13 +62,12 @@ public class GoogleAshiService implements AshioaraeInterface {
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
         String html = httpBuilder.builder().url(INFO_URL).cookies(cookies).proxy().start(String.class);
-        String div = HttpUtils.RexHtml(html, INFO_DIV_REGEX);
-        if (StringUtils.isEmpty(div)) {
+        String nickname = HttpUtils.RexHtml(html, NICK_REGEX);
+        String headImage = HttpUtils.RexHtml(html, HEAD_REGEX);
+        if (StringUtils.isEmpty(nickname)) {
             throw new CookieExpireException();
         }
-        String nickname = HttpUtils.RexHtml(div, NICK_REGEX);
-        String headImage = HttpUtils.RexHtml(div, HEAD_REGEX);
-        headImage = headImage.replace("s48", "s400");
+        headImage = headImage.replace("s32", "s400");
         return new AshiData(nickname, headImage);
     }
 
@@ -73,8 +79,43 @@ public class GoogleAshiService implements AshioaraeInterface {
         var userId = HttpUtils.RexHtml(pickHtml, String.format(ATTR_REGEX, "userId"));
         var clientUser = HttpUtils.RexHtml(pickHtml, String.format(ATTR_REGEX, "clientUser"));
         var uploadId = this.upload1(cookies, file, userId);
+        // 上传获取临时文件id
         var photoId = this.upload2(cookies, file, uploadId);
-        this.upload3(cookies, photoId, token, xToken, clientUser);
+        // 进行复制临时文件
+        var copyPhotoId = this.uploadCopy(cookies, photoId, token, xToken, clientUser);
+        this.upload3(cookies, copyPhotoId, token, xToken, clientUser);
+    }
+
+    private String uploadCopy(List<TarCookie> cookies, String photoId, String token, String xToken, String clientUser) {
+        var url = UPLOAD_URL_3 + "&xtoken=" + xToken;
+        var body = "ids=%5B%22picasa.0." + photoId + "%22%5D" +
+                "&service=picasa" +
+                "&operation=copy" +
+                "&options=%7B%22label%22%3A%22profile_photos.active%22%2C%22preventDuplicates%22%3A%22true%22%7D" +
+                "&token=" + token +
+                "&version=4&app=2" +
+                "&clientUser=1" + clientUser +
+                "&subapp=5&authuser=0";
+        var res = httpBuilder.builder()
+                .method(HttpMethod.POST)
+                .url(url).contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(body).cookies(cookies)
+                .proxy()
+                .start(String.class);
+        var startStr = "&&&START&&&";
+        var resJson = res.substring(res.lastIndexOf(startStr) + startStr.length());
+        JsonNode resNode;
+        try {
+            resNode = new ObjectMapper().readTree(resJson);
+        } catch (JsonProcessingException e) {
+            throw new AshiException("json error:" + e.getMessage());
+        }
+        return Optional.of(resNode)
+                .map(r -> r.get("response"))
+                .map(r -> r.get("docs"))
+                .map(r -> r.get(0))
+                .map(r -> r.get("id"))
+                .map(JsonNode::asText).orElseThrow();
     }
 
     private void upload3(List<TarCookie> cookies, String photoId, String token, String xToken, String clientUser) {
@@ -93,7 +134,7 @@ public class GoogleAshiService implements AshioaraeInterface {
                 .body(body).cookies(cookies)
                 .proxy()
                 .start(String.class);
-        logger.debug("google uploadHead final: " + res);
+        logger.info("google uploadHead final: " + res);
     }
 
     private String upload2(List<TarCookie> cookies, File file, String uploadId) {
