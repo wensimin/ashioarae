@@ -63,12 +63,16 @@ public class HttpUtils {
      * @param regex regex
      * @return 捕获的组
      */
-    public static String RexHtml(String html, String regex) {
-        return Optional.of(Pattern.compile(regex)).
+    public static String RexHtml(String html, String regex, int flags) {
+        return Optional.of(Pattern.compile(regex, flags)).
                 map(p -> p.matcher(html))
                 .filter(Matcher::find)
                 .map(Matcher::group)
                 .orElse(null);
+    }
+
+    public static String RexHtml(String html, String regex) {
+        return RexHtml(html, regex, 0);
     }
 
 
