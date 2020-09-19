@@ -29,11 +29,11 @@ out/
 /dist/
 /nbdist/
 /.nb-gradle/
-
+## passwd ###
+/src/main/resources/application.yml
 ### VS Code ###
 .vscode/
 
-## passwd ###
-/src/main/resources/application.yml
+
 ## update ##
 file/
