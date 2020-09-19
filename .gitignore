@@ -30,7 +30,7 @@ out/
 /nbdist/
 /.nb-gradle/
 ## passwd ###
-/src/main/resources/application.yml
+/src/main/resources/application-dev.yml
 ### VS Code ###
 .vscode/
 
