@@ -21,10 +21,11 @@ public class UserLog {
     @ManyToOne
     @JsonIgnore
     private SysUser user;
-    @Column(nullable = false)
+    @Column(nullable = false, length = 8092)
     @NotEmpty
     private String message;
-    @Column(length = 8012)
+    @Column
+    @Lob
     private String data;
     @Column(nullable = false)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
