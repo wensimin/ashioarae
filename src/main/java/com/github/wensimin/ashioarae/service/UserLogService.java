@@ -6,6 +6,9 @@ import com.github.wensimin.ashioarae.entity.UserLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+import java.util.List;
+
 @Service
 public class UserLogService {
     private final UserLogDao userLogDao;
@@ -22,4 +25,8 @@ public class UserLogService {
         return userLogDao.save(log);
     }
 
+    @Transactional
+    public List<UserLog> findLog(String username) {
+        return userLogDao.findByUser(sysUserDao.findByUsername(username));
+    }
 }

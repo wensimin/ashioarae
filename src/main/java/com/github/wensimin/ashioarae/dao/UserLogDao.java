@@ -4,6 +4,8 @@ import com.github.wensimin.ashioarae.entity.SysUser;
 import com.github.wensimin.ashioarae.entity.UserLog;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.List;
+
 public interface UserLogDao extends CrudRepository<UserLog, Long> {
-    UserLog findByUser(SysUser user);
+    List<UserLog> findByUser(SysUser user);
 }

@@ -32,7 +32,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .requestMatchers(EndpointRequest.toAnyEndpoint())
                 .hasAuthority(SysUser.ROLE_ADMIN)
-                .antMatchers("/user/register/**")
+                .antMatchers("/admin/**")
                 .hasAuthority(SysUser.ROLE_ADMIN)
                 .anyRequest().authenticated()
                 .and()
