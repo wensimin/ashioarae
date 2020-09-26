@@ -74,9 +74,9 @@ public class GoogleAshiService implements AshioaraeInterface {
                             , JsonReadFeature.ALLOW_TRAILING_COMMA)
                     .build();
             var dataArray = mapper.readTree(StringEscapeUtils.unescapeJava(dataString));
-            // magic number google data似乎只有这种做法比较可靠
+            // magic number google data似乎只有这种做法比较可靠 head的下标从73变动到了72,待观察是定期变化或是改动
             // 手动转等号
-            headImage = dataArray.get(73).textValue().replaceAll("x3d", "=");
+            headImage = dataArray.get(72).textValue().replaceAll("x3d", "=");
             nickname = dataArray.get(61).textValue();
         } catch (JsonProcessingException e) {
             e.printStackTrace();
