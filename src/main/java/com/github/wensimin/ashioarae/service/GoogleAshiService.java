@@ -75,9 +75,10 @@ public class GoogleAshiService implements AshioaraeInterface {
                     .build();
             var dataArray = mapper.readTree(StringEscapeUtils.unescapeJava(dataString));
             // magic number google data似乎只有这种做法比较可靠 head的下标从73变动到了72,待观察是定期变化或是改动
+            // 确认不稳定,待修复,临时fix到73&62
             // 手动转等号
-            headImage = dataArray.get(72).textValue().replaceAll("x3d", "=");
-            nickname = dataArray.get(61).textValue();
+            headImage = dataArray.get(73).textValue().replaceAll("x3d", "=");
+            nickname = dataArray.get(62).textValue();
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             throw new CookieExpireException();
