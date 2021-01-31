@@ -57,7 +57,6 @@ public class GoogleAshiService implements AshioaraeInterface {
     // attr 正则
     // modify by 2021年2月1日 单引号替换
     private static final String ATTR_REGEX = "(?<=\"%s\":\").+?(?=\")";
-    ;
 
     @Autowired
     public GoogleAshiService(HttpBuilder httpBuilder) {
