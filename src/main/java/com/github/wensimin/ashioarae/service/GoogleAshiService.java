@@ -54,8 +54,10 @@ public class GoogleAshiService implements AshioaraeInterface {
     //抓取数据的数组
     private static final String DATA_ARRAY_REGEX = "(?<=IJ_values = )[\\s\\S]+?(?=;)";
 
-    // attr正则,一个小hack 使用','开头来分开x-token与token,但是无法抓取到第一个值,不过似乎在这里没有影响
-    private static final String ATTR_REGEX = "(?<=,%s:').+?(?=')";
+    // attr 正则
+    // modify by 2021年2月1日 单引号替换
+    private static final String ATTR_REGEX = "(?<=\"%s\":\").+?(?=\")";
+    ;
 
     @Autowired
     public GoogleAshiService(HttpBuilder httpBuilder) {
