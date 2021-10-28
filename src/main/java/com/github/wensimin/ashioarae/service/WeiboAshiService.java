@@ -33,7 +33,7 @@ public class WeiboAshiService implements AshioaraeInterface {
 
     private static final String INFO_URL = "https://weibo.com/login.php";
     private static final String UPDATE_URL = "https://account.weibo.com/set/aj5/photo/uploadv6?cb=https%3A%2F%2Fweibo.com%2Faj%2Fstatic%2Fupimgback.html%3F_wv%3D5%26callback%3DSTK_ijax_159905661747962";
-    private static final String PROP_REGEX = "(?<=\\$CONFIG\\['%s']=').+?(?=')";
+    private static final String PROP_REGEX = "(?<=\"%s\":\").+?(?=\")";
 
     @Autowired
     public WeiboAshiService(HttpBuilder httpBuilder) {
@@ -43,7 +43,7 @@ public class WeiboAshiService implements AshioaraeInterface {
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
         var html = httpBuilder.builder().url(INFO_URL).cookies(cookies).start(String.class);
-        var nickName = HttpUtils.RexHtml(html, String.format(PROP_REGEX, "nick"));
+        var nickName = HttpUtils.RexHtml(html, String.format(PROP_REGEX, "screen_name"));
         if (StringUtils.isEmpty(nickName)) {
             throw new CookieExpireException();
         }
