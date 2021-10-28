@@ -18,7 +18,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Base64;
 import java.util.List;
 
 /**
@@ -47,8 +52,35 @@ public class InstagramAshiService implements AshioaraeInterface {
             throw new CookieExpireException();
         }
         var headImage = HttpUtils.RexHtml(html, String.format(PROP_REGEX, "profile_pic_url_hd"));
+        //编码转换
         headImage = headImage.replace("\\u0026", "&");
+        headImage = "data:image/png;base64," + getByteArrayFromImageURL(headImage);
         return new AshiData(nickName, headImage);
+    }
+
+    /**
+     * 将instagram的图片转为base64输出
+     * 由于ins使用跨域阻止了chrome插件显示图片,使用后端进行base64转码后输出chrome端
+     *
+     * @param url 图片url
+     * @return base64
+     */
+    private String getByteArrayFromImageURL(String url) {
+        try {
+            URL imageUrl = new URL(url);
+            URLConnection conn = imageUrl.openConnection(httpBuilder.createProxy());
+            InputStream is = conn.getInputStream();
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int read = 0;
+            while ((read = is.read(buffer, 0, buffer.length)) != -1) {
+                byteStream.write(buffer, 0, read);
+            }
+            byteStream.flush();
+            return Base64.getEncoder().encodeToString(byteStream.toByteArray());
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private String infoRequest(List<TarCookie> cookies) {

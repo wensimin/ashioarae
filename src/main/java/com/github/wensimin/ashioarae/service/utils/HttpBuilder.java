@@ -37,6 +37,15 @@ public class HttpBuilder {
     }
 
     /**
+     * 生成proxy
+     *
+     * @return proxy
+     */
+    public Proxy createProxy() {
+        return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
+    }
+
+    /**
      * cookie error 捕捉
      */
     private static class CookieErrorHandler implements ResponseErrorHandler {
@@ -81,12 +90,13 @@ public class HttpBuilder {
          * @return http
          */
         public Http proxy() {
-            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
+            Proxy proxy = HttpBuilder.this.createProxy();
             requestFactory.setProxy(proxy);
             requestFactory.setConnectTimeout(5000);
             requestFactory.setReadTimeout(5000);
             return this;
         }
+
 
         /**
          * set url
