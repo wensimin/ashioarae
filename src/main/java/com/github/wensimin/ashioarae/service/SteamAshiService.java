@@ -48,7 +48,7 @@ public class SteamAshiService implements AshioaraeInterface {
             throw new CookieExpireException("steam cookie null");
         }
         var sessionId = HttpUtils.getAttrInCookie(cookies, "sessionid").getValue();
-        var sId = HttpUtils.getAttrInCookie(cookies, "steamRememberLogin").getValue();
+        var sId = HttpUtils.getAttrInCookie(cookies, "steamLoginSecure").getValue();
         sId = sId.substring(0, sId.indexOf("%7C%7C"));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
