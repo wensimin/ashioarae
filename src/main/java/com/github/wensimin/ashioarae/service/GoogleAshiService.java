@@ -2,10 +2,8 @@ package com.github.wensimin.ashioarae.service;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.wensimin.ashioarae.controller.exception.AshiException;
 import com.github.wensimin.ashioarae.controller.exception.CookieExpireException;
 import com.github.wensimin.ashioarae.entity.AshiData;
@@ -13,7 +11,6 @@ import com.github.wensimin.ashioarae.entity.TarCookie;
 import com.github.wensimin.ashioarae.service.enums.AshiType;
 import com.github.wensimin.ashioarae.service.utils.HttpBuilder;
 import com.github.wensimin.ashioarae.service.utils.HttpUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,12 +48,14 @@ public class GoogleAshiService implements AshioaraeInterface {
     private static final String UPLOAD_URL_2 = "https://docs.google.com/upload/photos/resumable?authuser=0&upload_id=%s&file_id=000";
     private static final String UPLOAD_URL_3 = "https://docs.google.com/picker/mutate?origin=https%3A%2F%2Fmyaccount.google.com&hostId=ac";
 
-    //抓取数据的数组
-    private static final String DATA_ARRAY_REGEX = "(?<=IJ_values = )[\\s\\S]+?(?=;)";
 
     // attr 正则
     // modify by 2021年2月1日 单引号替换
     private static final String ATTR_REGEX = "(?<=\"%s\":\").+?(?=\")";
+
+    // 目前只支持中文 2022年4月26日 修改为正则html获取且暂支持中文
+    private static final String INFO_REGEX = "(?<=Google 帐号： ).*?(?= )";
+    private static final String HEAD_REGEX = "(?<=src=\")https:\\/\\/lh3\\.googleusercontent\\.com\\/ogw\\/.+?(?=\")";
 
     @Autowired
     public GoogleAshiService(HttpBuilder httpBuilder) {
@@ -66,30 +65,15 @@ public class GoogleAshiService implements AshioaraeInterface {
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
         String html = httpBuilder.builder().url(INFO_URL).cookies(cookies).proxy().start(String.class);
-        String dataString = HttpUtils.RexHtml(html, DATA_ARRAY_REGEX);
-        String headImage;
-        String nickname;
-        try {
-            ObjectMapper mapper = JsonMapper.builder()
-                    .enable(JsonReadFeature.ALLOW_SINGLE_QUOTES
-                            , JsonReadFeature.ALLOW_TRAILING_COMMA)
-                    .build();
-            var dataArray = mapper.readTree(StringEscapeUtils.unescapeJava(dataString));
-            // magic number google data似乎只有这种做法比较可靠 head的下标从73变动到了72,待观察是定期变化或是改动
-            // 确认不稳定,待修复,临时fix到73&62
-            // 手动转等号
-            headImage = dataArray.get(73).textValue().replaceAll("x3d", "=");
-            nickname = dataArray.get(62).textValue();
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            throw new CookieExpireException();
-        }
+        String headImage = HttpUtils.RexHtml(html, HEAD_REGEX).replace("s32", "s1024");
+        String nickname = HttpUtils.RexHtml(html, INFO_REGEX);
         if (StringUtils.isEmpty(nickname)) {
             throw new CookieExpireException();
         }
         return new AshiData(nickname, headImage);
     }
 
+    //FIXME 已无效
     @Override
     public void updateHeadImage(List<TarCookie> cookies, File file) {
         String pickHtml = httpBuilder.builder().url(PICK_URL).cookies(cookies).proxy().start(String.class);
