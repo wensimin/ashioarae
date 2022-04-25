@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BaiduAshiService implements AshioaraeInterface {
@@ -50,6 +51,11 @@ public class BaiduAshiService implements AshioaraeInterface {
 
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
+        cookies = cookies.stream()
+                .filter((cookie) -> cookie.getName().equals("BDUSS")
+                        || cookie.getName().equals("BDUSS_BFESS")
+                        || (cookie.getName().equals("STOKEN") && cookie.getDomain().equals(".tieba.baidu.com")))
+                .collect(Collectors.toList());
         var res = httpBuilder.builder().url(INFO_URL).cookies(cookies)
                 .converter(new BaiduHttpMessageConverter())
                 .start(BaiduInfoResponse.class);
