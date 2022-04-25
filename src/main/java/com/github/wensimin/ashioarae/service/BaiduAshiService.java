@@ -33,7 +33,7 @@ public class BaiduAshiService implements AshioaraeInterface {
     private static final Logger logger = LoggerFactory.getLogger(WeiboAshiService.class);
     private final HttpBuilder httpBuilder;
 
-    private static final String INFO_URL = "http://tieba.baidu.com/f/user/json_userinfo";
+    private static final String INFO_URL = "https://tieba.baidu.com/f/user/json_userinfo";
     private static final String UPDATE_PAGE_URL = "https://passport.baidu.com/v3/ucenter/accountportrait";
     private static final String UPDATE_URL = "https://passport.baidu.com/sys/preview";
     private static final String SELECT_URL = "https://passport.baidu.com/sys/corpupload";
@@ -51,12 +51,8 @@ public class BaiduAshiService implements AshioaraeInterface {
 
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
-        cookies = cookies.stream()
-                .filter((cookie) -> cookie.getName().equals("BDUSS")
-                        || cookie.getName().equals("BDUSS_BFESS")
-                        || (cookie.getName().equals("STOKEN") && cookie.getDomain().equals(".tieba.baidu.com")))
-                .collect(Collectors.toList());
-        var res = httpBuilder.builder().url(INFO_URL).cookies(cookies)
+        var filteredCookie = filterCookie(cookies);
+        var res = httpBuilder.builder().url(INFO_URL).cookies(filteredCookie)
                 .converter(new BaiduHttpMessageConverter())
                 .start(BaiduInfoResponse.class);
         if (res == null) {
@@ -64,6 +60,14 @@ public class BaiduAshiService implements AshioaraeInterface {
         }
         var data = res.getData();
         return new AshiData(data.getNick(), "https://himg.bdimg.com/sys/portrait/item/" + data.getHeadImg());
+    }
+
+    private List<TarCookie> filterCookie(List<TarCookie> cookies) {
+        return cookies.stream()
+                .filter((cookie) -> cookie.getName().equals("BDUSS")
+                        || cookie.getName().equals("BDUSS_BFESS")
+                        || (cookie.getName().equals("STOKEN") && cookie.getDomain().equals(".tieba.baidu.com")))
+                .collect(Collectors.toList());
     }
 
     @Override
