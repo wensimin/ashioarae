@@ -54,7 +54,7 @@ public class BaiduAshiService implements AshioaraeInterface {
         var filteredCookie = filterCookie(cookies);
         var res = httpBuilder.builder().url(INFO_URL).cookies(filteredCookie)
                 .converter(new BaiduHttpMessageConverter())
-                .start(BaiduInfoResponse.class);
+                .run(BaiduInfoResponse.class);
         if (res == null) {
             throw new CookieExpireException();
         }
@@ -79,7 +79,7 @@ public class BaiduAshiService implements AshioaraeInterface {
                 .header("Sec-Fetch-Dest", "document")
                 .header("Referer", "https://passport.baidu.com/v6/ucenter")
                 .header("Accept-Language", "zh-CN,zh;q=0.9,zh-TW;q=0.8,ja;q=0.7,en;q=0.6")
-                .start(String.class);
+                .run(String.class);
         var token = HttpUtils.RexHtml(html, String.format(PROP_REGEX, "bdstoken"));
         var sign = HttpUtils.RexHtml(html, String.format(PROP_REGEX, "psign"));
         var picId = this.upload(file, cookies, token, sign);
@@ -115,7 +115,7 @@ public class BaiduAshiService implements AshioaraeInterface {
                 .header("Accept-Language", "zh-CN,zh;q=0.9,zh-TW;q=0.8,ja;q=0.7,en;q=0.6")
                 .header("Connection", "keep-alive")
                 .header("Accept", "text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01")
-                .cookies(cookies).start(String.class);
+                .cookies(cookies).run(String.class);
         logger.info(res);
     }
 
@@ -144,7 +144,7 @@ public class BaiduAshiService implements AshioaraeInterface {
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(body)
                 .cookies(cookies)
-                .start(String.class);
+                .run(String.class);
         return this.checkUpload(html);
     }
 

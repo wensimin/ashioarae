@@ -72,7 +72,7 @@ public class InstagramAshiService implements AshioaraeInterface {
             InputStream is = conn.getInputStream();
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
-            int read = 0;
+            int read;
             while ((read = is.read(buffer, 0, buffer.length)) != -1) {
                 byteStream.write(buffer, 0, read);
             }
@@ -95,7 +95,7 @@ public class InstagramAshiService implements AshioaraeInterface {
         headers.add("sec-fetch-dest", "document");
         headers.add("accept-language", "zh-CN,zh;q=0.9,zh-TW;q=0.8,ja;q=0.7,en;q=0.6");
         return httpBuilder.builder().url(INFO_URL).headers(headers)
-                .cookies(cookies).proxy().start(String.class);
+                .cookies(cookies).proxy().run(String.class);
     }
 
     @Override
@@ -116,7 +116,7 @@ public class InstagramAshiService implements AshioaraeInterface {
         body.add("profile_pic", new FileSystemResource(file));
         var res = httpBuilder.builder().method(HttpMethod.POST).url(UPLOAD_URL)
                 .headers(headers).body(body).cookies(cookies)
-                .proxy().start(InstagramResponse.class);
+                .proxy().run(InstagramResponse.class);
         this.checkRes(res);
     }
 

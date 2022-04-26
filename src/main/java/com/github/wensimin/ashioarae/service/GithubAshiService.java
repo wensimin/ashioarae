@@ -43,12 +43,12 @@ public class GithubAshiService implements AshioaraeInterface {
 
     @Override
     public void updateHeadImage(List<TarCookie> cookies, File file) {
-        var html = httpBuilder.builder().url(INFO_URL).cookies(cookies).proxy().start(String.class);
+        var html = httpBuilder.builder().url(INFO_URL).cookies(cookies).proxy().run(String.class);
         String userId = HttpUtils.RexHtml(html, USER_ID_REX);
         String settingToken = HttpUtils.RexHtml(html, SETTING_TOKEN_REX);
         UpLoadRes1 res1 = this.upload1(settingToken, userId, file, cookies);
         UploadRes2 res2 = this.upload2(res1, cookies, userId, file);
-        var headHtml = httpBuilder.builder().url(String.format(UPLOAD_URL_3, res2.getId())).cookies(cookies).proxy().start(String.class);
+        var headHtml = httpBuilder.builder().url(String.format(UPLOAD_URL_3, res2.getId())).cookies(cookies).proxy().run(String.class);
         String uploadToken = HttpUtils.RexHtml(headHtml, UPLOAD_TOKEN_REX);
         this.upload(res2, cookies, uploadToken);
     }
@@ -73,7 +73,7 @@ public class GithubAshiService implements AshioaraeInterface {
         httpBuilder.builder().url(String.format(UPLOAD_URL_3, res2.getId()))
                 .method(HttpMethod.POST)
                 .headers(headers).body(body)
-                .cookies(cookies).proxy().start(String.class);
+                .cookies(cookies).proxy().run(String.class);
     }
 
     /**
@@ -101,7 +101,7 @@ public class GithubAshiService implements AshioaraeInterface {
         return httpBuilder.builder().url(UPLOAD_URL_2)
                 .method(HttpMethod.POST)
                 .headers(headers).body(body)
-                .cookies(cookies).proxy().start(UploadRes2.class);
+                .cookies(cookies).proxy().run(UploadRes2.class);
     }
 
     /**
@@ -126,13 +126,13 @@ public class GithubAshiService implements AshioaraeInterface {
         return httpBuilder.builder().url(UPLOAD_URL_1)
                 .method(HttpMethod.POST)
                 .headers(headers).body(body)
-                .cookies(cookies).proxy().start(UpLoadRes1.class);
+                .cookies(cookies).proxy().run(UpLoadRes1.class);
     }
 
 
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
-        var html = httpBuilder.builder().url(INFO_URL).cookies(cookies).proxy().start(String.class);
+        var html = httpBuilder.builder().url(INFO_URL).cookies(cookies).proxy().run(String.class);
         var nick = HttpUtils.RexHtml(html, NICK_REX);
         if (nick == null) {
             throw new CookieExpireException("github cookie可能失效");

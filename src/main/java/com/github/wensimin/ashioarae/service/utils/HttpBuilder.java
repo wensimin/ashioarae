@@ -198,13 +198,23 @@ public class HttpBuilder {
          * @param <T>  返回值类型
          * @return 要求的返回值
          */
-        public <T> T start(Class<T> type) {
+        public <T> T run(Class<T> type) {
+            return runResponse(type).getBody();
+        }
+
+        /**
+         * 获取完整的http返回
+         *
+         * @param type 返回值类型
+         * @param <T>  返回值类型
+         * @return 要求的返回值
+         */
+        public <T> ResponseEntity<T> runResponse(Class<T> type) {
             if (url == null) {
                 throw new NullPointerException("url is null");
             }
             headers.add("cookie", HttpUtils.cookie2String(HttpUtils.getCookieByUrl(cookies, url)));
-            ResponseEntity<T> response = restTemplate.exchange(url, method, new HttpEntity<>(body, headers), type);
-            return response.getBody();
+            return restTemplate.exchange(url, method, new HttpEntity<>(body, headers), type);
         }
 
 

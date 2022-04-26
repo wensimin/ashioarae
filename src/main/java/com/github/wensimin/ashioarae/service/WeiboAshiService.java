@@ -42,7 +42,7 @@ public class WeiboAshiService implements AshioaraeInterface {
 
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
-        var html = httpBuilder.builder().url(INFO_URL).cookies(cookies).start(String.class);
+        var html = httpBuilder.builder().url(INFO_URL).cookies(cookies).run(String.class);
         var nickName = HttpUtils.RexHtml(html, String.format(PROP_REGEX, "screen_name"));
         if (StringUtils.isEmpty(nickName)) {
             throw new CookieExpireException();
@@ -61,7 +61,7 @@ public class WeiboAshiService implements AshioaraeInterface {
         } catch (IOException e) {
             throw new AshiException("file error");
         }
-        var html = httpBuilder.builder().url(INFO_URL).cookies(cookies).start(String.class);
+        var html = httpBuilder.builder().url(INFO_URL).cookies(cookies).run(String.class);
         var id = HttpUtils.RexHtml(html, String.format(PROP_REGEX, "uid"));
         String fileData = Base64.getEncoder().encodeToString(fileContent);
         HttpHeaders headers = new HttpHeaders();
@@ -76,7 +76,7 @@ public class WeiboAshiService implements AshioaraeInterface {
         body.add("file_source", "5");
         var res = httpBuilder.builder().url(UPDATE_URL).method(HttpMethod.POST)
                 .headers(headers).body(body).cookies(cookies)
-                .start(String.class);
+                .run(String.class);
         logger.info("weibo up html:" + res);
     }
 

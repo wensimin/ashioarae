@@ -62,7 +62,7 @@ public class SteamAshiService implements AshioaraeInterface {
         UpdateResponse res = httpBuilder.builder()
                 .url(HEAD_URL).method(HttpMethod.POST)
                 .headers(headers).body(body)
-                .cookies(cookies).proxy().start(UpdateResponse.class);
+                .cookies(cookies).proxy().run(UpdateResponse.class);
         this.checkRes(res);
     }
 
@@ -70,7 +70,7 @@ public class SteamAshiService implements AshioaraeInterface {
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
         String html = httpBuilder.builder().url(HOME_URL)
-                .cookies(cookies).proxy().start(String.class);
+                .cookies(cookies).proxy().run(String.class);
         Matcher matcher = INFO_REGEX.matcher(html);
         if (!matcher.find()) {
             throw new RuntimeException("steam 捕获出错,检查api");
@@ -84,7 +84,7 @@ public class SteamAshiService implements AshioaraeInterface {
         String accountId = infoMap.get("accountid");
         String infoUrl = String.format(INFO_URL, accountId);
         SteamInfo steamInfo = httpBuilder.builder().url(infoUrl)
-                .cookies(cookies).proxy().start(SteamInfo.class);
+                .cookies(cookies).proxy().run(SteamInfo.class);
         return new AshiData(steamInfo.getNickname(), steamInfo.getHeadImage());
     }
 

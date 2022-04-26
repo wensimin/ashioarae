@@ -58,7 +58,7 @@ public class BilibiliAshiService implements AshioaraeInterface {
                 .headers(headers)
                 .body(body)
                 .cookies(cookies)
-                .start(BilibiliResponse.class);
+                .run(BilibiliResponse.class);
         this.checkRes(res);
     }
 
@@ -66,8 +66,8 @@ public class BilibiliAshiService implements AshioaraeInterface {
 
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
-        BilibiliResponse infoResponse = httpBuilder.builder().url(INFO_API).cookies(cookies).start(BilibiliResponse.class);
-        BilibiliResponse headResponse = httpBuilder.builder().url(HEAD_API).cookies(cookies).start(BilibiliResponse.class);
+        BilibiliResponse infoResponse = httpBuilder.builder().url(INFO_API).cookies(cookies).run(BilibiliResponse.class);
+        BilibiliResponse headResponse = httpBuilder.builder().url(HEAD_API).cookies(cookies).run(BilibiliResponse.class);
         checkRes(infoResponse);
         checkRes(headResponse);
         String name = Optional.of(infoResponse)

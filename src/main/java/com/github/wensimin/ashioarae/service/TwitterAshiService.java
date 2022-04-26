@@ -55,7 +55,7 @@ public class TwitterAshiService implements AshioaraeInterface {
         body.add("media_id", mediaId);
         httpBuilder.builder().method(HttpMethod.POST)
                 .url(HEAD_URL).headers(headers).body(body)
-                .cookies(cookies).proxy().start(String.class);
+                .cookies(cookies).proxy().run(String.class);
     }
 
     /**
@@ -72,7 +72,7 @@ public class TwitterAshiService implements AshioaraeInterface {
         headers.add("referer", "https://twitter.com/settings/profile");
         var initRes = httpBuilder.builder().method(HttpMethod.POST)
                 .url(uploadInitUrl).headers(headers)
-                .cookies(cookies).proxy().start(TwitterResponse.class);
+                .cookies(cookies).proxy().run(TwitterResponse.class);
         this.checkRes(initRes);
         long mediaId = initRes.getMediaId();
         var appendUrl = UPLOAD_URL + "?command=APPEND&media_id=" + mediaId + "&segment_index=0";
@@ -82,14 +82,14 @@ public class TwitterAshiService implements AshioaraeInterface {
         body.add("media", new FileSystemResource(file));
         var appendRes = httpBuilder.builder().method(HttpMethod.POST)
                 .url(appendUrl).headers(headers).body(body)
-                .cookies(cookies).proxy().start(TwitterResponse.class);
+                .cookies(cookies).proxy().run(TwitterResponse.class);
         this.checkRes(appendRes);
         var finalizeUrl = UPLOAD_URL + "?command=FINALIZE&media_id=" + mediaId;
         headers = new HttpHeaders();
         headers.add("referer", "https://twitter.com/settings/profile");
         var finalizeRes = httpBuilder.builder().method(HttpMethod.POST)
                 .url(finalizeUrl).headers(headers)
-                .cookies(cookies).proxy().start(TwitterResponse.class);
+                .cookies(cookies).proxy().run(TwitterResponse.class);
         this.checkRes(finalizeRes);
         mediaId = finalizeRes.getMediaId();
         return mediaId;
@@ -106,7 +106,7 @@ public class TwitterAshiService implements AshioaraeInterface {
 
     @Override
     public AshiData getInfo(List<TarCookie> cookies) {
-        String html = httpBuilder.builder().url(HOME_URL).cookies(cookies).proxy().start(String.class);
+        String html = httpBuilder.builder().url(HOME_URL).cookies(cookies).proxy().run(String.class);
         // 正则可能有命名空间问题,目前未发现问题
         String name = this.getAttr(html, "name");
         String headImage = this.getAttr(html, "profile_image_url_https");
