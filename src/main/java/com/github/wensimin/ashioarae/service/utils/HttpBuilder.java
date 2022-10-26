@@ -42,7 +42,7 @@ public class HttpBuilder {
      * @return proxy
      */
     public Proxy createProxy() {
-        return new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(host, port));
+        return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
     }
 
     /**
